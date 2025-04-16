@@ -1,0 +1,719 @@
+:root {
+    --primary-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    --secondary-bg: #0f172a;
+    --accent-color: #3b82f6;
+    --text-color: #e2e8f0;
+    --border-color: #2d3748;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', Arial, sans-serif;
+    background: var(--primary-bg);
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.workspace {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 20px;
+    gap: 20px;
+}
+
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    margin-top: 60px; /* Space for fixed header elements */
+}
+
+.header {
+    position: fixed;
+    padding: 20px;
+    background-image: linear-gradient(to top, 
+        rgb(4, 0, 22, 0) 0%,
+        rgb(0, 5, 51, 1) 50%,
+        rgb(0, 3, 46) 90%
+    );
+    z-index: 1;
+    width: 100%;
+    height: 100px;
+    left: 0;
+    right: 0;
+    top: 0;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo {
+    color: var(--text-color);
+    height: 40px;
+    width: 40px;
+}
+
+.title-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.powered-by {
+    font-size: 12px;
+    color: var(--text-color);
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gemini-text {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.input-section {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-image: linear-gradient(to top, 
+        rgb(4, 0, 22,1) 0%,
+        rgb(0, 5, 51) 50%,
+        rgba(0, 7, 107, 0) 90%
+    );
+    padding: 20px;
+    z-index: 10;
+}
+
+.input-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.image-upload-container {
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+
+.upload-circle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.6);
+    border: 2px dashed var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.upload-circle:hover {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+.plus-icon {
+    font-size: 24px;
+    color: var(--text-color);
+    position: absolute;
+    z-index: 1;
+}
+
+.image-preview {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.text-input-container {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    min-width: 0;
+}
+
+textarea {
+    flex: 1;
+    height: 70px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 25px;
+    padding: 12px 20px;
+    color: var(--text-color);
+    font-size: 1.1rem;
+    resize: none;
+    outline: none;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+textarea::placeholder {
+    color: #c0daff;
+}
+
+.input-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-left: 10px;
+}
+
+#imageCount {
+    width: 80px;
+    height: 70px;
+    background: var(--primary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 35px;
+    color: var(--text-color);
+    padding: 0 10px;
+    text-align: center;
+}
+
+button {
+    height: 70px;
+    width: 170px;
+    border: 1px solid var(--border-color);
+    color: white;
+    border: none;
+    border-radius: 35px;
+    font-weight: 600;
+    font-size: 1.6rem;
+    cursor: pointer;
+    transition: all 0.5s ease-in-out;
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+#generateBtn {
+    height: 70px;
+    min-width: 140px;
+    padding: 0 30px;
+    border: none;
+    border-radius: 35px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.5s ease-in-out;
+    background-image: linear-gradient(to right, #ff5100, #ff9100);
+    box-shadow: 0 0 40px 0 rgba(255, 102, 0, 0.699);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#generateBtn::before {
+    content: "✨";
+    font-size: 1.2em;
+    display: none;
+}
+
+#generateBtn span {
+    display: block;
+}
+
+#generateBtn:disabled {
+    background: #000d20;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 10px 0 rgba(255, 102, 0, 0.158);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    margin-bottom: 180px; /* Space for fixed input section */
+}
+
+.image-container {
+    background: var(--primary-bg);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    aspect-ratio: 1;
+}
+
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.progress-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--accent-color);
+    transition: width 0.3s ease;
+}
+
+.status-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    border-radius: 25px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-generating {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--accent-color);
+}
+
+.status-complete {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.status-error {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+/* Hide the default file input */
+input[type="file"] {
+    display: none;
+}
+
+/* Image Count Dropdown */
+.image-count-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.image-count-container label {
+    font-size: 12px;
+    color: var(--text-color);
+    opacity: 0.8;
+    margin-left: 5px;
+}
+
+/* Custom Select Styles */
+.custom-select {
+    position: relative;
+    width: 120px;
+    user-select: none;
+}
+
+.select-selected {
+    position: relative;
+    padding: 8px 15px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 20px;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 14px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.select-selected:hover {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+    background: rgba(15, 23, 42, 0.9);
+}
+
+/* Style for the items container */
+.select-items {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    background: rgba(15, 23, 42, 0.95);
+    border-radius: 15px;
+    padding: 5px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 100;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.select-items div {
+    padding: 8px 15px;
+    cursor: pointer;
+    color: var(--text-color);
+    font-size: 14px;
+    transition: all 0.2s ease;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+.select-items div:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--accent-color);
+}
+
+/* Active states */
+.select-items.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+.select-selected.active {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+.same-as-selected {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-color);
+}
+
+/* Remove default select */
+.custom-select select {
+    display: none;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal.show {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-content {
+    position: relative;
+    margin: 20px;
+    max-width: calc(100% - 40px);
+    max-height: calc(100vh - 40px);
+    background: var(--secondary-bg);
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: var(--text-color);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.close-modal:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+#modalImage {
+    max-width: 100%;
+    max-height: calc(90vh - 100px);
+    object-fit: contain;
+    border-radius: 15px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.download-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+}
+
+.download-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Image Container Download Button */
+.image-container {
+    position: relative;
+}
+
+.image-container .download-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    padding: 8px 16px;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-container:hover .download-btn {
+    opacity: 1;
+}
+
+/* Reverse the order of options to show newest first */
+.select-items {
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .input-container {
+        flex-direction: row;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .image-upload-container {
+        margin-right: 0;
+    }
+
+    .text-input-container {
+        flex-direction: row;
+        width: 100%;
+    }
+
+    textarea {
+        height: 60px;
+        font-size: 1rem;
+        padding: 10px 15px;
+    }
+
+    #generateBtn {
+        height: 60px;
+        min-width: 120px;
+        font-size: 1rem;
+    }
+
+    .image-count-container {
+        top: 20px;
+        right: 20px;
+    }
+
+    .custom-select {
+        width: 100px;
+    }
+
+    .select-selected {
+        height: 35px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .workspace {
+        padding: 10px;
+    }
+
+    .input-container {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .upload-circle {
+        width: 50px;
+        height: 50px;
+    }
+
+    .text-input-container {
+        gap: 10px;
+    }
+
+    textarea {
+        height: 50px;
+        padding: 8px 12px;
+    }
+
+    #generateBtn {
+        height: 50px;
+        min-width: 100px;
+        font-size: 0.9rem;
+    }
+
+    .image-count-container {
+        top: 20px;
+        right: 10px;
+    }
+}
+
+/* Image Grid Responsive */
+@media (min-width: 1200px) {
+    .image-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Improve scrolling on mobile */
+@media (hover: none) and (pointer: coarse) {
+    .main-content {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media (max-width: 750px) {
+    .input-section {
+        padding: 15px 10px;
+    }
+
+    .input-container {
+        padding: 0 10px;
+        gap: 10px;
+    }
+
+    .upload-circle {
+        width: 50px;
+        height: 50px;
+    }
+
+    .text-input-container {
+        gap: 10px;
+    }
+
+    textarea {
+        height: 50px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    #generateBtn {
+        height: 50px;
+        width: 50px;
+        min-width: 50px;
+        padding: 0;
+        border-radius: 50%;
+    }
+
+    #generateBtn::before {
+        display: block;
+        font-size: 1.1em;
+    }
+
+    #generateBtn span {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .input-section {
+        padding: 10px 5px;
+    }
+
+    .input-container {
+        padding: 0 5px;
+        gap: 8px;
+    }
+
+    .upload-circle {
+        width: 45px;
+        height: 45px;
+    }
+
+    .plus-icon {
+        font-size: 20px;
+    }
+
+    textarea {
+        height: 45px;
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+
+    #generateBtn {
+        height: 45px;
+        width: 45px;
+        min-width: 45px;
+    }
+
+    #generateBtn::before {
+        font-size: 1em;
+    }
+}
