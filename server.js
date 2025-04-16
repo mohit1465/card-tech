@@ -13,39 +13,31 @@ app.use(express.static('.')); // Serve files from the current directory
 // Proxy endpoint for Gemini API
 app.post('/api/generate', async (req, res) => {
     try {
-        // Optimize the request payload
-        const optimizedRequest = {
-            contents: [{
-                role: "user",
-                parts: req.body.contents[0].parts.map(part => {
-                    if (part.inlineData) {
-                        // Compress the image data if needed
-                        return {
-                            inlineData: {
-                                mimeType: part.inlineData.mimeType,
-                                data: part.inlineData.data
-                            }
-                        };
-                    }
-                    return part;
-                })
-            }],
-            generationConfig: req.body.generationConfig
-        };
-
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:streamGenerateContent?key=${process.env.GEMINI_API_KEY}`, {
+        // Handle streaming properly
+        res.setHeader('Content-Type', 'application/json');
+        
+        // Get the Gemini API key
+        const apiKey = process.env.GEMINI_API_KEY;
+        
+        // Forward the request to the Gemini API
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:streamGenerateContent?key=${apiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(optimizedRequest)
+            body: JSON.stringify(req.body)
         });
         
-        const data = await response.json();
-        res.json(data);
+        // Stream the response back to the client
+        if (!response.ok) {
+            const errorData = await response.json();
+            return res.status(response.status).json(errorData);
+        }
+        
+        response.body.pipe(res);
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ error: 'Failed to generate image' });
+        res.status(500).json({ error: 'Failed to generate image', details: error.message });
     }
 });
 

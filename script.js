@@ -6,9 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateBtn = document.getElementById('generateBtn');
     const promptInput = document.getElementById('prompt');
     const imageInput = document.getElementById('imageInput');
-    const imagePreview = document.getElementById('imagePreview');
+    const multipleImagePreview = document.getElementById('multipleImagePreview');
     const imageCountInput = document.getElementById('imageCount');
     const imageSizeInput = document.getElementById('imageSize');
+    const temperatureSlider = document.getElementById('temperatureSlider');
+    const temperatureValue = document.getElementById('temperatureValue');
     const resultsDiv = document.getElementById('results');
     const uploadCircle = document.querySelector('.upload-circle');
     const modal = document.getElementById('imagePreviewModal');
@@ -117,18 +119,63 @@ document.addEventListener('DOMContentLoaded', () => {
         imageInput.click();
     });
 
+    // Variable to store uploaded image files
+    let uploadedImages = [];
+
     imageInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                imagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-                uploadCircle.style.border = 'none';
-            };
-            reader.readAsDataURL(file);
-        } else {
-            imagePreview.innerHTML = '';
+        const files = e.target.files;
+        if (files.length > 0) {
+            uploadedImages = Array.from(files);
+            
+            // Clear previous previews
+            multipleImagePreview.innerHTML = '';
+            
+            // Show all images in the multipleImagePreview div
+            for (let i = 0; i < files.length; i++) {
+                const fileReader = new FileReader();
+                fileReader.onload = (e) => {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'preview-thumbnail';
+                    imgContainer.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview ${i+1}">
+                        <div class="remove-image" data-index="${i}">×</div>
+                    `;
+                    multipleImagePreview.appendChild(imgContainer);
+                    
+                    // Add event listener to remove button
+                    imgContainer.querySelector('.remove-image').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const index = parseInt(this.getAttribute('data-index'));
+                        uploadedImages.splice(index, 1);
+                        this.parentElement.remove();
+                        
+                        // Update the data-index attributes
+                        const removeButtons = multipleImagePreview.querySelectorAll('.remove-image');
+                        removeButtons.forEach((btn, idx) => {
+                            btn.setAttribute('data-index', idx);
+                        });
+                    });
+                };
+                fileReader.readAsDataURL(files[i]);
+            }
+            
+            // Keep the upload circle styled as active
             uploadCircle.style.border = '2px dashed var(--border-color)';
+
+            uploadCircle.addEventListener('mouseover', () => {
+                uploadCircle.style.borderColor = 'var(--accent-color)';
+                uploadCircle.style.boxShadow = '0 0 20px rgba(59, 130, 246, 0.2)';
+            });
+            
+            uploadCircle.addEventListener('mouseout', () => {
+                uploadCircle.style.borderColor = 'var(--border-color)';
+                uploadCircle.style.boxShadow = 'none';
+            });
+
+        } else {
+            multipleImagePreview.innerHTML = '';
+            uploadCircle.style.border = '2px dashed var(--border-color)';
+            uploadedImages = [];
         }
     });
 
@@ -208,20 +255,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Temperature slider functionality
+    temperatureSlider.addEventListener('input', function() {
+        temperatureValue.textContent = this.value;
+    });
+
     generateBtn.addEventListener('click', async () => {
         const prompt = promptInput.value.trim();
         const imageCount = Math.min(6, Math.max(1, parseInt(imageCountInput.value)));
         const imageSize = imageSizeInput.value; // Get the selected image size
+        const temperature = parseFloat(temperatureSlider.value); // Get the temperature value
         
         if (!prompt) {
-            alert('Please enter a prompt');
+            // Show error animation on prompt textarea
+            promptInput.classList.add('error-shake');
+            setTimeout(() => promptInput.classList.remove('error-shake'), 600);
             return;
         }
 
+        // Show loading state on button
         generateBtn.disabled = true;
+        generateBtn.classList.add('loading');
+        const originalBtnText = generateBtn.innerHTML;
+        generateBtn.innerHTML = '<div class="btn-spinner"></div><span>Generating...</span>';
+        
+        // Clear previous results
         resultsDiv.querySelector('.image-grid').innerHTML = '';
         
         const imageGrid = resultsDiv.querySelector('.image-grid');
+
+        // Scroll to results area
+        window.scrollTo({
+            top: resultsDiv.offsetTop - 50,
+            behavior: 'smooth'
+        });
 
         let imageBase64 = null;
         if (imageInput.files.length > 0) {
@@ -233,6 +300,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const container = document.createElement('div');
             container.className = 'image-container';
             container.innerHTML = `
+                <div class="loading-animation">
+                    <div class="loading-spinner"></div>
+                </div>
                 <div class="progress-container">
                     <div class="progress-bar"></div>
                 </div>
@@ -243,8 +313,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     </svg>
                     Download
                 </button>
+                <button class="retry-btn" style="display: none;">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path fill="currentColor" d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                    </svg>
+                    Retry
+                </button>
             `;
             imageGrid.appendChild(container);
+            
+            // Add retry button functionality
+            const retryBtn = container.querySelector('.retry-btn');
+            retryBtn.addEventListener('click', () => {
+                // Reset container and re-generate this image
+                container.innerHTML = '';
+                generateSingleImage(index);
+            });
+            
             return container;
         };
 
@@ -256,7 +341,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const updateStatus = (container, status, error = null) => {
             const statusIndicator = container.querySelector('.status-indicator');
             statusIndicator.className = `status-indicator status-${status}`;
-            statusIndicator.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+            
+            // Add or remove error class on container
+            if (status === 'error') {
+                container.classList.add('error');
+                // Show specific error message
+                statusIndicator.innerHTML = `Error: ${error ? (error.substring(0, 50) + (error.length > 50 ? '...' : '')) : 'Failed to generate image'}`;
+                statusIndicator.title = error || 'Unknown error occurred'; // Full error on hover
+            } else {
+                container.classList.remove('error');
+                statusIndicator.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                statusIndicator.title = ''; // Clear any existing title
+            }
         };
 
         const processStreamResponse = async (reader, container, index) => {
@@ -277,7 +373,15 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 while (true) {
                     const { done, value } = await reader.read();
-                    if (done) break;
+                    if (done) {
+                        // If done without finding image data, show error
+                        if (buffer.indexOf('"inlineData"') === -1) {
+                            clearInterval(progressInterval);
+                            updateStatus(container, 'error', 'No image data received from API');
+                            return false;
+                        }
+                        break;
+                    }
                     
                     const chunk = decoder.decode(value, { stream: true });
                     buffer += chunk;
@@ -289,6 +393,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 clearInterval(progressInterval);
                                 updateProgress(container, 100);
                                 updateStatus(container, 'complete');
+                                
+                                // Remove loading animation if present
+                                const loadingAnimation = container.querySelector('.loading-animation');
+                                if (loadingAnimation) {
+                                    loadingAnimation.remove();
+                                }
                                 
                                 const img = document.createElement('img');
                                 const imageSrc = `data:image/png;base64,${imageMatch[1]}`;
@@ -323,6 +433,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(progressInterval);
                 updateStatus(container, 'error', err.message);
                 console.error(`Error processing stream:`, err);
+                
+                // Show retry button
+                const retryBtn = container.querySelector('.retry-btn');
+                if (retryBtn) {
+                    retryBtn.style.display = 'flex';
+                }
+                
                 return false;
             } finally {
                 clearInterval(progressInterval);
@@ -336,15 +453,17 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 let parts = [];
 
-                if (imageInput.files.length > 0) {
-                    const file = imageInput.files[0];
-                    const compressedImage = await compressImage(file);
-                    parts.push({
-                        inlineData: {
-                            mimeType: 'image/jpeg',
-                            data: compressedImage.split(',')[1]
-                        }
-                    });
+                // Add all uploaded images to the request
+                if (uploadedImages.length > 0) {
+                    for (const imageFile of uploadedImages) {
+                        const compressedImage = await compressImage(imageFile);
+                        parts.push({
+                            inlineData: {
+                                mimeType: 'image/jpeg',
+                                data: compressedImage.split(',')[1]
+                            }
+                        });
+                    }
                 }
 
                 // Get the selected art style
@@ -375,11 +494,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         aspectRatio = "in widescreen (16:9) aspect ratio";
                         break;
                     default:
-                        aspectRatio = "in widescreen (16:9) aspect ratio";
+                        aspectRatio = "in square (1:1) aspect ratio";
                 }
 
                 if (promptText !== "") {
-                    parts.push({ text: `Generate a detailed image: ${promptText} ${aspectRatio}` });
+                    parts.push({ text: `Generate a ultra high quality, detailed image: ${promptText} ${aspectRatio}` });
                 }
 
                 const requestData = {
@@ -390,7 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     generationConfig: {
                         responseModalities: ["image", "text"],
                         responseMimeType: "text/plain",
-                        temperature: 0.4
+                        temperature: temperature
                     }
                 };
 
@@ -403,7 +522,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    let errorMessage = `HTTP error! status: ${response.status}`;
+                    try {
+                        // Try to parse error response for more details
+                        const errorData = JSON.parse(errorText);
+                        if (errorData.error && errorData.error.message) {
+                            errorMessage = errorData.error.message;
+                        }
+                    } catch (e) {
+                        // If we can't parse the error, just use the text
+                        if (errorText) errorMessage += ` - ${errorText}`;
+                    }
+                    throw new Error(errorMessage);
                 }
 
                 const reader = response.body.getReader();
@@ -417,7 +548,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const imagePromises = Array.from({ length: imageCount }, (_, i) => generateSingleImage(i));
         await Promise.allSettled(imagePromises);
         
+        // Reset button state
         generateBtn.disabled = false;
+        generateBtn.classList.remove('loading');
+        generateBtn.innerHTML = originalBtnText;
     });
 });
 

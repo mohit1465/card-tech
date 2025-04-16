@@ -15,8 +15,8 @@
                     <div class="logo-container">
                         <img src="assets/card_casa_white_logo.png" alt="Cart AI Logo" class="logo">
                         <div class="title-text">
-                            <span class="powered-by">Powered by</span>
-                            <span class="gemini-text">Gemini</span>
+                            <span class="gemini-text">CARD CASA</span>
+                            <span class="powered-by">Powered by Gemini</span>
                         </div>
                     </div>
                     <div class="hamburger-menu">
@@ -33,12 +33,14 @@
                 </div>
 
                 <div class="input-section">
+                    <div id="multipleImagePreview" class="multiple-image-preview">
+                        <!-- Multiple images will be shown here -->
+                    </div>
                     <div class="input-container">
                         <div class="image-upload-container">
-                            <input type="file" id="imageInput" accept="image/*">
+                            <input type="file" id="imageInput" accept="image/*" multiple>
                             <div class="upload-circle">
                                 <div class="plus-icon">+</div>
-                                <div id="imagePreview" class="image-preview"></div>
                             </div>
                         </div>
                         <div class="text-input-container">
@@ -96,7 +98,7 @@
                 <div class="sidebar-section">
                     <h4>Aspect Ratio</h4>
                     <div class="custom-select image-size-select">
-                        <div class="select-selected">16:9</div>
+                        <div class="select-selected">1:1</div>
                         <div class="select-items select-hide">
                             <div data-value="16:9">16:9</div>
                             <div data-value="9:16">9:16</div>
@@ -133,6 +135,21 @@
                             <option value="5">5 Images</option>
                             <option value="6">6 Images</option>
                         </select>
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h4>Temperature <span class="tooltip-icon" title="Controls the creativity/randomness of the output. Higher values produce more varied results.">ⓘ</span></h4>
+                    <div class="temperature-container">
+                        <input type="range" id="temperatureSlider" min="0" max="2" step="0.1" value="0.4">
+                        <div class="temperature-labels">
+                            <span>0</span>
+                            <span id="temperatureValue">0.4</span>
+                            <span>2</span>
+                        </div>
+                        <div class="temperature-descriptions">
+                            <span>Stable</span>
+                            <span>Creative</span>
+                        </div>
                     </div>
                 </div>
             </div>
