@@ -244,17 +244,19 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 let parts = [];
 
-                if (imageBase64) {
+                if (imageInput.files.length > 0) {
+                    const file = imageInput.files[0];
+                    const compressedImage = await compressImage(file);
                     parts.push({
                         inlineData: {
-                            mimeType: imageInput.files[0].type,
-                            data: imageBase64.split(',')[1]
+                            mimeType: 'image/jpeg',
+                            data: compressedImage.split(',')[1]
                         }
                     });
                 }
 
-                if (prompt.trim() !== "") {
-                    parts.push({ text: `Generate a detailed image: ${prompt}` });
+                if (promptInput.value.trim() !== "") {
+                    parts.push({ text: `Generate a detailed image: ${promptInput.value}` });
                 }
 
                 const requestData = {
@@ -269,19 +271,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
 
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 60000);
-
                 const response = await fetch(API_URL, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify(requestData),
-                    signal: controller.signal
+                    body: JSON.stringify(requestData)
                 });
 
-                clearTimeout(timeoutId);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const reader = response.body.getReader();
                 await processStreamResponse(reader, container, index);
             } catch (err) {
@@ -326,4 +327,42 @@ async function generateImage(prompt, imageCount) {
         console.error('Error:', error);
         // ... error handling ...
     }
+}
+
+// Helper function to compress image
+async function compressImage(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Calculate new dimensions while maintaining aspect ratio
+                let width = img.width;
+                let height = img.height;
+                const maxSize = 1024; // Maximum dimension
+                
+                if (width > height && width > maxSize) {
+                    height = (height * maxSize) / width;
+                    width = maxSize;
+                } else if (height > maxSize) {
+                    width = (width * maxSize) / height;
+                    height = maxSize;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Convert to base64 with quality compression
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                resolve(compressedBase64);
+            };
+            img.src = e.target.result;
+        };
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
 } 
