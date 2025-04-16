@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageInput = document.getElementById('imageInput');
     const imagePreview = document.getElementById('imagePreview');
     const imageCountInput = document.getElementById('imageCount');
+    const imageSizeInput = document.getElementById('imageSize');
     const resultsDiv = document.getElementById('results');
     const uploadCircle = document.querySelector('.upload-circle');
     const modal = document.getElementById('imagePreviewModal');
@@ -15,48 +16,99 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModal = document.querySelector('.close-modal');
     const downloadImage = document.getElementById('downloadImage');
 
-    // Custom Select Functionality
-    const selectSelected = document.querySelector('.select-selected');
-    const selectItems = document.querySelector('.select-items');
-    const selectOptions = selectItems.querySelectorAll('div');
-
-    // Toggle select dropdown
-    selectSelected.addEventListener('click', (e) => {
-        e.stopPropagation();
-        selectSelected.classList.toggle('active');
-        selectItems.classList.toggle('active');
-        selectItems.classList.toggle('select-hide');
+    // New elements for responsive layout
+    const hamburgerMenu = document.querySelector('.hamburger-menu');
+    const sidebar = document.querySelector('.sidebar');
+    const closeSidebar = document.querySelector('.close-sidebar');
+    
+    // Create sidebar overlay
+    const sidebarOverlay = document.createElement('div');
+    sidebarOverlay.className = 'sidebar-overlay';
+    document.body.appendChild(sidebarOverlay);
+    
+    // Toggle sidebar on hamburger menu click
+    hamburgerMenu.addEventListener('click', () => {
+        sidebar.classList.add('active');
+        sidebarOverlay.classList.add('active');
     });
+    
+    // Close sidebar when clicking the close button or overlay
+    closeSidebar.addEventListener('click', closeSidebarFunction);
+    sidebarOverlay.addEventListener('click', closeSidebarFunction);
+    
+    function closeSidebarFunction() {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+    }
 
-    // Handle option selection
-    selectOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            const value = e.target.getAttribute('data-value');
-            const text = e.target.textContent;
+    // Fixed Custom Select Functionality
+    const customSelects = document.querySelectorAll('.custom-select');
+    
+    customSelects.forEach(customSelect => {
+        const selectSelected = customSelect.querySelector('.select-selected');
+        const selectItems = customSelect.querySelector('.select-items');
+        const selectOptions = selectItems.querySelectorAll('div');
+        const selectElement = customSelect.querySelector('select');
+        
+        // Toggle dropdown
+        selectSelected.addEventListener('click', (e) => {
+            e.stopPropagation();
             
-            // Update the select display
-            selectSelected.textContent = text;
+            // Close all other dropdowns first
+            customSelects.forEach(otherSelect => {
+                if (otherSelect !== customSelect) {
+                    otherSelect.querySelector('.select-selected').classList.remove('active');
+                    otherSelect.querySelector('.select-items').classList.remove('active');
+                    otherSelect.querySelector('.select-items').classList.add('select-hide');
+                }
+            });
             
-            // Update the hidden select value
-            imageCountInput.value = value;
-            
-            // Update selected styling
-            selectOptions.forEach(opt => opt.classList.remove('same-as-selected'));
-            e.target.classList.add('same-as-selected');
-            
-            // Close dropdown
-            selectSelected.classList.remove('active');
-            selectItems.classList.remove('active');
-            selectItems.classList.add('select-hide');
+            // Toggle current dropdown
+            selectSelected.classList.toggle('active');
+            selectItems.classList.toggle('active');
+            selectItems.classList.toggle('select-hide');
+        });
+        
+        // Handle option selection
+        selectOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const value = e.target.getAttribute('data-value');
+                const text = e.target.textContent;
+                
+                // Update the select display
+                selectSelected.textContent = text;
+                
+                // Update the hidden select value
+                selectElement.value = value;
+                
+                // Update selected styling
+                selectOptions.forEach(opt => opt.classList.remove('same-as-selected'));
+                e.target.classList.add('same-as-selected');
+                
+                // Close dropdown
+                selectSelected.classList.remove('active');
+                selectItems.classList.remove('active');
+                selectItems.classList.add('select-hide');
+                
+                // Trigger change event on the select element
+                const event = new Event('change');
+                selectElement.dispatchEvent(event);
+            });
         });
     });
-
-    // Close dropdown when clicking outside
+    
+    // Close all select boxes when clicking outside
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.custom-select')) {
-            selectSelected.classList.remove('active');
-            selectItems.classList.remove('active');
-            selectItems.classList.add('select-hide');
+            customSelects.forEach(customSelect => {
+                const selectSelected = customSelect.querySelector('.select-selected');
+                const selectItems = customSelect.querySelector('.select-items');
+                
+                selectSelected.classList.remove('active');
+                selectItems.classList.remove('active');
+                selectItems.classList.add('select-hide');
+            });
         }
     });
 
@@ -117,9 +169,49 @@ document.addEventListener('DOMContentLoaded', () => {
         imageCountInput.value = value;
     });
 
+    // Art Style variables
+    const styleSearch = document.getElementById('styleSearch');
+    const styleItems = document.querySelectorAll('.style-item');
+    const selectedStyleText = document.getElementById('selectedStyleText');
+    const selectedStyle = document.querySelector('.selected-style');
+    const artStyleInput = document.getElementById('artStyle');
+    
+    // Style search functionality
+    styleSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        styleItems.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+    
+    // Style selection
+    styleItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const value = this.getAttribute('data-value');
+            
+            // Update visuals
+            styleItems.forEach(i => i.classList.remove('selected'));
+            this.classList.add('selected');
+            
+            // Update selected style display
+            selectedStyleText.textContent = value;
+            selectedStyle.classList.add('has-style');
+            
+            // Update hidden input
+            artStyleInput.value = value;
+        });
+    });
+
     generateBtn.addEventListener('click', async () => {
         const prompt = promptInput.value.trim();
         const imageCount = Math.min(6, Math.max(1, parseInt(imageCountInput.value)));
+        const imageSize = imageSizeInput.value; // Get the selected image size
         
         if (!prompt) {
             alert('Please enter a prompt');
@@ -255,8 +347,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 
-                if (promptInput.value.trim() !== "") {
-                    parts.push({ text: `Generate a detailed image: ${promptInput.value}` });
+                // Get the selected art style
+                const artStyle = artStyleInput.value;
+                
+                // Add art style to the prompt if selected
+                let promptText = promptInput.value.trim();
+                if (artStyle) {
+                    promptText += `, ${artStyle} style`;
+                }
+                
+                // Add aspect ratio to the prompt
+                let aspectRatio = "";
+                switch(imageSize) {
+                    case "1:1":
+                        aspectRatio = "in square (1:1) aspect ratio";
+                        break;
+                    case "3:4":
+                        aspectRatio = "in portrait (3:4) aspect ratio";
+                        break;
+                    case "4:3":
+                        aspectRatio = "in landscape (4:3) aspect ratio";
+                        break;
+                    case "9:16":
+                        aspectRatio = "in tall portrait (9:16) aspect ratio";
+                        break;
+                    case "16:9":
+                        aspectRatio = "in widescreen (16:9) aspect ratio";
+                        break;
+                    default:
+                        aspectRatio = "in widescreen (16:9) aspect ratio";
+                }
+
+                if (promptText !== "") {
+                    parts.push({ text: `Generate a detailed image: ${promptText} ${aspectRatio}` });
                 }
 
                 const requestData = {
