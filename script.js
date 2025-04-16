@@ -1,6 +1,6 @@
-// Remove the require statements and use the API URL directly
+// Update the API URL to use the Render deployment URL
 const MODEL_ID = 'gemini-2.0-flash-exp-image-generation';
-const API_URL = '/api/generate';  // This will be handled by our server
+const API_URL = 'https://cart-ai.onrender.com/api/generate';  // Update this with your Render URL
 
 document.addEventListener('DOMContentLoaded', () => {
     const generateBtn = document.getElementById('generateBtn');
