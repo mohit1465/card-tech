@@ -1,6 +1,6 @@
 // Update the API URL to use the Render deployment URL
 const MODEL_ID = 'gemini-2.0-flash-exp-image-generation';
-const API_URL = 'https://cart-ai.onrender.com/api/generate';  // Update this with your Render URL
+const API_URL = 'https://cart-ai.onrender.com/api/generate';
 
 document.addEventListener('DOMContentLoaded', () => {
     const generateBtn = document.getElementById('generateBtn');
@@ -527,8 +527,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     try {
                         // Try to parse error response for more details
                         const errorData = JSON.parse(errorText);
-                        if (errorData.error && errorData.error.message) {
-                            errorMessage = errorData.error.message;
+                        if (errorData.error) {
+                            if (errorData.error.message) {
+                                errorMessage = errorData.error.message;
+                            } else if (typeof errorData.error === 'string') {
+                                errorMessage = errorData.error;
+                            } else if (errorData.details) {
+                                errorMessage = errorData.details;
+                            }
+                            
+                            // Special handling for common error cases
+                            if (errorMessage.includes('API key')) {
+                                errorMessage = 'Missing or invalid API key. Check the server configuration.';
+                            } else if (response.status === 429) {
+                                errorMessage = 'Rate limit exceeded. Please try again later.';
+                            } else if (response.status === 500) {
+                                errorMessage = 'Server error. Check if the API key is set up correctly.';
+                            }
                         }
                     } catch (e) {
                         // If we can't parse the error, just use the text

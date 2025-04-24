@@ -2,6 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+// Import fetch for Node.js versions that don't have it globally
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+// Import stream utilities
+const { Readable } = require('stream');
 const app = express();
 
 // Increase payload size limit
@@ -19,8 +23,16 @@ app.post('/api/generate', async (req, res) => {
         // Get the Gemini API key
         const apiKey = process.env.GEMINI_API_KEY;
         
+        if (!apiKey) {
+            console.error('GEMINI_API_KEY environment variable is not set');
+            return res.status(500).json({ error: 'Missing Gemini API key. Please set the GEMINI_API_KEY environment variable.' });
+        }
+        
         // Forward the request to the Gemini API
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:streamGenerateContent?key=${apiKey}`, {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:streamGenerateContent?key=${apiKey}`;
+        console.log(`Sending request to Gemini API at: ${apiUrl.replace(apiKey, 'REDACTED')}`);
+        
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -30,13 +42,23 @@ app.post('/api/generate', async (req, res) => {
         
         // Stream the response back to the client
         if (!response.ok) {
+            console.error(`Gemini API error: ${response.status} ${response.statusText}`);
             const errorData = await response.json();
+            console.error('API error details:', JSON.stringify(errorData));
             return res.status(response.status).json(errorData);
         }
         
-        response.body.pipe(res);
+        // Properly handle streaming in Node.js
+        if (response.body) {
+            // Convert the fetch body to a Node.js readable stream
+            const nodeStream = Readable.from(response.body);
+            nodeStream.pipe(res);
+        } else {
+            console.error('No response body received from Gemini API');
+            return res.status(500).json({ error: 'No response body from API' });
+        }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error in /api/generate endpoint:', error);
         res.status(500).json({ error: 'Failed to generate image', details: error.message });
     }
 });
