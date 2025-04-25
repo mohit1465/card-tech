@@ -187,69 +187,77 @@
                 
                 <!-- Right section: Text editing controls -->
                 <div class="modal-right-section">
-                    <div class="text-editor-panel">
-                        <div class="layer-editor" id="layerEditor">
-                            <h4>Edit Text</h4>
-                            <div class="edit-group">
-                                <label>Text</label>
-                                <input type="text" id="textInput" placeholder="Enter text...">
-                            </div>
-                            
-                            <div class="edit-group">
-                                <label>Font</label>
-                                <select id="fontFamily">
-                                    <option>Arial</option>
-                                    <option>Verdana</option>
-                                    <option>Impact</option>
-                                    <option>Georgia</option>
-                                    <option>Courier New</option>
-                                    <option>Comic Sans MS</option>
-                                    <option>Trebuchet MS</option>
-                                </select>
-                            </div>
-                            
-                            <div class="edit-group">
-                                <label>Size</label>
-                                <input type="number" id="fontSize" min="10" max="200" step="1" value="30">
-                            </div>
-                            
-                            <div class="edit-group">
-                                <label>Position X</label>
-                                <input type="range" id="xSlider" min="0" max="1000" value="100">
-                                <input type="number" id="xPos" value="100">
-                            </div>
-                            
-                            <div class="edit-group">
-                                <label>Position Y</label>
-                                <input type="range" id="ySlider" min="0" max="1000" value="100">
-                                <input type="number" id="yPos" value="100">
-                            </div>
-                            
-                            <div class="edit-group">
-                                <label>Text Color</label>
-                                <input type="color" id="textColor" value="#ffffff">
-                            </div>
-                            
-                            <div class="edit-group">
-                                <label>Opacity</label>
-                                <input type="range" id="opacity" min="0" max="1" step="0.05" value="1">
-                            </div>
-                            
-                            <div class="edit-group">
-                                <label><input type="checkbox" id="border"> Border</label>
-                                <input type="color" id="borderColor" value="#000000">
-                            </div>
-                            
-                            <div class="edit-group">
-                                <label><input type="checkbox" id="shadow"> Shadow</label>
-                                <input type="color" id="shadowColor" value="#000000">
-                                <input type="range" id="shadowBlur" min="0" max="30" value="5">
+                    <div class="tabs-container">
+                        <button id="propertiesTab" class="tab-btn active" onclick="setupTabSwitching()">Properties</button>
+                        <button id="layersTab" class="tab-btn" onclick="setupTabSwitching()">Layers</button>
+                    </div>
+                    <div class="text-editor-panel"> 
+                        <div id="propertiesContent" class="tab-content active">
+                            <div class="layer-editor" id="layerEditor">
+                                <h2>Edit Text</h2>
+                                <hr>
+                                <div class="edit-group">
+                                    <label>Text</label>
+                                    <input type="text" id="textInput" placeholder="Enter text...">
+                                </div>
+                                
+                                <div class="edit-group">
+                                    <label>Font</label>
+                                    <select id="fontFamily">
+                                        <option>Arial</option>
+                                        <option>Verdana</option>
+                                        <option>Impact</option>
+                                        <option>Georgia</option>
+                                        <option>Courier New</option>
+                                        <option>Comic Sans MS</option>
+                                        <option>Trebuchet MS</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="edit-group">
+                                    <label>Size</label>
+                                    <input type="number" id="fontSize" min="10" max="200" step="1" value="30">
+                                </div>
+                                
+                                <div class="edit-group">
+                                    <label>Position X</label>
+                                    <input type="range" id="xSlider" min="0" max="1000" value="100">
+                                    <input type="number" id="xPos" value="100">
+                                </div>
+                                
+                                <div class="edit-group">
+                                    <label>Position Y</label>
+                                    <input type="range" id="ySlider" min="0" max="1000" value="100">
+                                    <input type="number" id="yPos" value="100">
+                                </div>
+                                
+                                <div class="edit-group">
+                                    <label>Text Color</label>
+                                    <input type="color" id="textColor" value="#ffffff">
+                                </div>
+                                
+                                <div class="edit-group">
+                                    <label>Opacity</label>
+                                    <input type="range" id="opacity" min="0" max="1" step="0.05" value="1">
+                                </div>
+                                
+                                <div class="edit-group">
+                                    <label><input type="checkbox" id="border"> Border</label>
+                                    <input type="color" id="borderColor" value="#000000">
+                                </div>
+                                
+                                <div class="edit-group">
+                                    <label><input type="checkbox" id="shadow"> Shadow</label>
+                                    <input type="color" id="shadowColor" value="#000000">
+                                    <input type="range" id="shadowBlur" min="0" max="30" value="5">
+                                </div>
                             </div>
                         </div>
-                        
-                        <div class="text-controls">
-                            <button id="addTextLayer" class="text-btn">+ Add Text</button>
-                            <div class="layer-list" id="layerList"></div>
+                        <div id="layersContent" class="tab-content">
+                            <div class="text-controls">
+                                <button id="addTextLayer" class="text-btn">+ Add Text</button>
+                                <div class="layer-list" id="layerList"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -260,13 +268,13 @@
                     <svg viewBox="0 0 24 24" width="24" height="24">
                         <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
                     </svg>
-                    Download Original
+                    Original
                 </button>
                 <button id="downloadEdited" class="download-btn">
                     <svg viewBox="0 0 24 24" width="24" height="24">
                         <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
                     </svg>
-                    Download with Text
+                    New
                 </button>
             </div>
         </div>

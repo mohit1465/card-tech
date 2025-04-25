@@ -43,6 +43,11 @@ function showModal(imageSrc) {
 const updateThumbnails = (currentImageSrc = null) => {
     const thumbnailsContainer = document.getElementById('imageThumbnails');
     
+    if (!thumbnailsContainer) {
+        console.error('Thumbnails container not found with ID: imageThumbnails');
+        return;
+    }
+    
     // Clear existing thumbnails
     thumbnailsContainer.innerHTML = '';
     
@@ -150,26 +155,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Toggle sidebar on hamburger menu click
     if (hamburgerMenu && sidebar && sidebarOverlay) {
-        hamburgerMenu.addEventListener('click', () => {
-            sidebar.classList.add('active');
-            sidebarOverlay.classList.add('active');
-        });
+    hamburgerMenu.addEventListener('click', () => {
+        sidebar.classList.add('active');
+        sidebarOverlay.classList.add('active');
+    });
     }
     
     // Close sidebar when clicking the close button or overlay
     if (closeSidebar) {
-        closeSidebar.addEventListener('click', closeSidebarFunction);
+    closeSidebar.addEventListener('click', closeSidebarFunction);
     }
     
     if (sidebarOverlay) {
-        sidebarOverlay.addEventListener('click', closeSidebarFunction);
+    sidebarOverlay.addEventListener('click', closeSidebarFunction);
     }
     
     function closeSidebarFunction() {
         if (sidebar && sidebarOverlay) {
-            sidebar.classList.remove('active');
-            sidebarOverlay.classList.remove('active');
-        }
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+    }
     }
 
     // Custom select implementation
@@ -195,27 +200,27 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.querySelectorAll('.custom-select .select-items').forEach(options => {
                     if (options !== selectOptions) {
                         options.classList.remove('active');
-                    }
-                });
-                
+                }
+            });
+            
                 // Toggle the dropdown
                 selectOptions.classList.toggle('active');
                 selectButton.classList.toggle('active');
-            });
-            
+        });
+        
             // Add click event to select options
             selectOptions.querySelectorAll('div').forEach(option => {
                 option.addEventListener('click', () => {
                     const value = option.getAttribute('data-value');
                     const text = option.textContent;
-                    
+                
                     // Update the selected option text
                     selectButton.textContent = text;
-                    
+                
                     // Update the hidden select value if available
                     if (hiddenSelect) {
                         hiddenSelect.value = value;
-                        
+                
                         // Trigger native select change event
                         const changeEvent = new Event('change', { bubbles: true });
                         hiddenSelect.dispatchEvent(changeEvent);
@@ -226,16 +231,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                         opt.classList.remove('same-as-selected');
                     });
                     option.classList.add('same-as-selected');
-                    
-                    // Close dropdown
+                
+                // Close dropdown
                     selectOptions.classList.remove('active');
                     selectButton.classList.remove('active');
-                    
+                
                     // Trigger change event for the custom select
                     const event = new Event('change', { bubbles: true });
-                    selectElement.dispatchEvent(event);
-                });
+                selectElement.dispatchEvent(event);
             });
+        });
         }
     });
     
@@ -319,19 +324,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Modal functionality
     function hideModal() {
         if (modal) {
-            modal.classList.remove('show');
-            document.body.style.overflow = '';
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
         }
     }
 
     // Initialize event listeners only if elements exist
     if (closeModal) {
-        closeModal.addEventListener('click', hideModal);
+    closeModal.addEventListener('click', hideModal);
     }
     
     if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
                 hideModal();
             }
         });
@@ -349,8 +354,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (imageCountSelect) {
         imageCountSelect.addEventListener('change', () => {
             let value = parseInt(imageCountSelect.value);
-            if (value < 1) value = 1;
-            if (value > 6) value = 6;
+        if (value < 1) value = 1;
+        if (value > 6) value = 6;
             imageCountSelect.value = value;
             
             // Also update the custom select text if needed
@@ -362,7 +367,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     selectButton.textContent = value + suffix;
                 }
             }
-        });
+    });
     }
 
     // Art Style variables
@@ -595,7 +600,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const errorData = JSON.parse(errorText);
                         if (errorData.error) {
                             if (errorData.error.message) {
-                                errorMessage = errorData.error.message;
+                            errorMessage = errorData.error.message;
                             } else if (typeof errorData.error === 'string') {
                                 errorMessage = errorData.error;
                             } else if (errorData.details) {
@@ -775,4 +780,143 @@ async function compressImage(file) {
         reader.onerror = error => reject(error);
         reader.readAsDataURL(file);
     });
-} 
+}
+
+// Initialize text editor when modal is shown
+function initTextEditor() {
+    canvas = document.getElementById('textCanvas');
+    if (!canvas) {
+        console.error('Text canvas not found');
+        return;
+    }
+    
+    ctx = canvas.getContext('2d');
+    
+    // Get image dimensions and set canvas size
+    const img = document.getElementById('modalImage');
+    if (!img) {
+        console.error('Modal image not found');
+        return;
+    }
+    
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    
+    // Store the current image source
+    currentImage = img.src;
+    
+    // Get the current image style
+    const currentStyle = window.imageStyleMap && window.imageStyleMap.get(currentImage);
+    
+    // First check if this specific image has layers
+    if (imageLayersMap.has(currentImage)) {
+        layers = imageLayersMap.get(currentImage);
+    } 
+    // Then check if there are layers for this style that we can apply
+    else if (currentStyle && styleLayersMap.has(currentStyle) && styleLayersMap.get(currentStyle).length > 0) {
+        // Clone the style layers to avoid modifying the originals
+        layers = JSON.parse(JSON.stringify(styleLayersMap.get(currentStyle)));
+        // Save these layers for this specific image
+        imageLayersMap.set(currentImage, layers);
+    } 
+    // Otherwise use empty layers array
+    else {
+        layers = [];
+    }
+    
+    activeLayer = layers.length > 0 ? layers[0] : null;
+    
+    updateLayerList();
+    
+    // Set up toggle buttons
+    const showOriginal = document.getElementById('showOriginal');
+    const showEdited = document.getElementById('showEdited');
+    const modalImage = document.getElementById('modalImage');
+    const textCanvas = document.getElementById('textCanvas');
+    
+    if (showOriginal) {
+        showOriginal.addEventListener('click', () => {
+            if (showOriginal && showEdited && modalImage && textCanvas) {
+                showOriginal.classList.add('active');
+                showEdited.classList.remove('active');
+                modalImage.classList.add('active');
+                textCanvas.classList.remove('active');
+            }
+        });
+    }
+    
+    if (showEdited) {
+        showEdited.addEventListener('click', () => {
+            if (showOriginal && showEdited && modalImage && textCanvas) {
+                showEdited.classList.add('active');
+                showOriginal.classList.remove('active');
+                textCanvas.classList.add('active');
+                modalImage.classList.remove('active');
+                renderCanvas();
+            }
+        });
+    }
+    
+    // Add text layer button
+    const addTextLayerBtn = document.getElementById('addTextLayer');
+    if (addTextLayerBtn) {
+        addTextLayerBtn.addEventListener('click', addTextLayer);
+    }
+    
+    // Download buttons
+    const downloadOriginalBtn = document.getElementById('downloadOriginal');
+    if (downloadOriginalBtn) {
+        downloadOriginalBtn.addEventListener('click', downloadOriginal);
+    }
+    
+    const downloadEditedBtn = document.getElementById('downloadEdited');
+    if (downloadEditedBtn) {
+        downloadEditedBtn.addEventListener('click', downloadEdited);
+    }
+    
+    // Setup tab switching for mobile view
+    setupTabSwitching();
+    
+    // If we have layers, render the canvas and show edited view if needed
+    if (layers.length > 0) {
+        renderCanvas();
+        // If previously the user was viewing the edited version, show that
+        if (imageLayersMap.get(currentImage + '_viewingEdited')) {
+            if (showEdited) showEdited.click();
+        }
+    }
+    
+    // Hide layer editor initially if no active layer
+    toggleLayerEditorVisibility();
+}
+
+function setupTabSwitching() {
+    const propertiesTab = document.getElementById('propertiesTab');
+    const layersTab = document.getElementById('layersTab');
+    const propertiesContent = document.getElementById('propertiesContent');
+    const layersContent = document.getElementById('layersContent');
+
+    function activateTab(tab, content) {
+        // Remove 'active' class from all tabs and contents
+        propertiesTab.classList.remove('active');
+        layersTab.classList.remove('active');
+        propertiesContent.classList.remove('active');
+        layersContent.classList.remove('active');
+
+        // Add 'active' class to selected tab and its content
+        tab.classList.add('active');
+        content.classList.add('active');
+    }
+
+    // Set up event listeners
+    propertiesTab.addEventListener('click', () => {
+        activateTab(propertiesTab, propertiesContent);
+    });
+
+    layersTab.addEventListener('click', () => {
+        activateTab(layersTab, layersContent);
+    });
+}
+
+
+// ... existing code ... 
