@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cart AI</title>
     <link rel="stylesheet" href="styles.css">
+    <meta name="description" content="AI-powered image generation using Gemini API">
 </head>
 <body>
     <div class="layout-container">
@@ -99,19 +100,19 @@
                     <h4>Aspect Ratio</h4>
                     <div class="custom-select image-size-select">
                         <div class="select-selected">1:1</div>
-                        <div class="select-items select-hide">
+                        <div class="select-items">
                             <div data-value="16:9">16:9</div>
                             <div data-value="9:16">9:16</div>
                             <div data-value="4:3">4:3</div>
                             <div data-value="3:4">3:4</div>
                             <div data-value="1:1">1:1</div>
                         </div>
-                        <select id="imageSize" style="display: none;">
+                        <select id="imageSize">
                             <option value="16:9">16:9</option>
                             <option value="9:16">9:16</option>
                             <option value="4:3">4:3</option>
                             <option value="3:4">3:4</option>
-                            <option value="1:1">1:1</option>
+                            <option value="1:1" selected>1:1</option>
                         </select>
                     </div>
                 </div>
@@ -119,7 +120,7 @@
                     <h4>Image Count</h4>
                     <div class="custom-select">
                         <div class="select-selected">1 Image</div>
-                        <div class="select-items select-hide">
+                        <div class="select-items">
                             <div data-value="1">1 Image</div>
                             <div data-value="2">2 Images</div>
                             <div data-value="3">3 Images</div>
@@ -127,8 +128,8 @@
                             <div data-value="5">5 Images</div>
                             <div data-value="6">6 Images</div>
                         </div>
-                        <select id="imageCount" style="display: none;">
-                            <option value="1">1 Image</option>
+                        <select id="imageCount">
+                            <option value="1" selected>1 Image</option>
                             <option value="2">2 Images</option>
                             <option value="3">3 Images</option>
                             <option value="4">4 Images</option>
@@ -160,18 +161,599 @@
     <div class="modal" id="imagePreviewModal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
-            <img id="modalImage" src="" alt="Preview">
+            
+            <div class="modal-flex-container">
+                <!-- Left section: Image, toggle buttons, and thumbnails -->
+                <div class="modal-left-section">
+                    <!-- Toggle between original and edited image -->
+                    <div class="image-toggle">
+                        <button id="showOriginal" class="toggle-btn active">Original</button>
+                        <button id="showEdited" class="toggle-btn">With Text</button>
+                    </div>
+                    
+                    <!-- Image container -->
+                    <div class="image-container-wrapper">
+                        <img id="modalImage" src="" alt="Preview" class="active">
+                        <canvas id="textCanvas" class="text-canvas"></canvas>
+                    </div>
+                    
+                    <!-- Image thumbnails carousel-->
+                    <div class="image-thumbnails-carousel">
+                        <button class="carousel-nav prev">&lsaquo;</button>
+                        <div class="thumbnails-container" id="imageThumbnails"></div>
+                        <button class="carousel-nav next">&rsaquo;</button>
+                    </div>
+                </div>
+                
+                <!-- Right section: Text editing controls -->
+                <div class="modal-right-section">
+                    <div class="text-editor-panel">
+                        <div class="layer-editor" id="layerEditor">
+                            <h4>Edit Text</h4>
+                            <div class="edit-group">
+                                <label>Text</label>
+                                <input type="text" id="textInput" placeholder="Enter text...">
+                            </div>
+                            
+                            <div class="edit-group">
+                                <label>Font</label>
+                                <select id="fontFamily">
+                                    <option>Arial</option>
+                                    <option>Verdana</option>
+                                    <option>Impact</option>
+                                    <option>Georgia</option>
+                                    <option>Courier New</option>
+                                    <option>Comic Sans MS</option>
+                                    <option>Trebuchet MS</option>
+                                </select>
+                            </div>
+                            
+                            <div class="edit-group">
+                                <label>Size</label>
+                                <input type="number" id="fontSize" min="10" max="200" step="1" value="30">
+                            </div>
+                            
+                            <div class="edit-group">
+                                <label>Position X</label>
+                                <input type="range" id="xSlider" min="0" max="1000" value="100">
+                                <input type="number" id="xPos" value="100">
+                            </div>
+                            
+                            <div class="edit-group">
+                                <label>Position Y</label>
+                                <input type="range" id="ySlider" min="0" max="1000" value="100">
+                                <input type="number" id="yPos" value="100">
+                            </div>
+                            
+                            <div class="edit-group">
+                                <label>Text Color</label>
+                                <input type="color" id="textColor" value="#ffffff">
+                            </div>
+                            
+                            <div class="edit-group">
+                                <label>Opacity</label>
+                                <input type="range" id="opacity" min="0" max="1" step="0.05" value="1">
+                            </div>
+                            
+                            <div class="edit-group">
+                                <label><input type="checkbox" id="border"> Border</label>
+                                <input type="color" id="borderColor" value="#000000">
+                            </div>
+                            
+                            <div class="edit-group">
+                                <label><input type="checkbox" id="shadow"> Shadow</label>
+                                <input type="color" id="shadowColor" value="#000000">
+                                <input type="range" id="shadowBlur" min="0" max="30" value="5">
+                            </div>
+                        </div>
+                        
+                        <div class="text-controls">
+                            <button id="addTextLayer" class="text-btn">+ Add Text</button>
+                            <div class="layer-list" id="layerList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="modal-actions">
-                <button id="downloadImage" class="download-btn">
+                <button id="downloadOriginal" class="download-btn">
                     <svg viewBox="0 0 24 24" width="24" height="24">
                         <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
                     </svg>
-                    Download
+                    Download Original
+                </button>
+                <button id="downloadEdited" class="download-btn">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                    </svg>
+                    Download with Text
                 </button>
             </div>
         </div>
     </div>
 
+    <script src="config.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Text layer editor functionality
+        let canvas, ctx;
+        let layers = [];
+        let activeLayer = null;
+        let currentImage = null;
+        
+        // Store layers for each image and style
+        const imageLayersMap = new Map();
+        // Store style-specific layers to reuse across images with the same style
+        const styleLayersMap = new Map();
+        
+        // Initialize text editor when modal is shown
+        function initTextEditor() {
+            canvas = document.getElementById('textCanvas');
+            if (!canvas) {
+                console.error('Text canvas not found');
+                return;
+            }
+            
+            ctx = canvas.getContext('2d');
+            
+            // Get image dimensions and set canvas size
+            const img = document.getElementById('modalImage');
+            if (!img) {
+                console.error('Modal image not found');
+                return;
+            }
+            
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            
+            // Store the current image source
+            currentImage = img.src;
+            
+            // Get the current image style
+            const currentStyle = window.imageStyleMap && window.imageStyleMap.get(currentImage);
+            
+            // First check if this specific image has layers
+            if (imageLayersMap.has(currentImage)) {
+                layers = imageLayersMap.get(currentImage);
+            } 
+            // Then check if there are layers for this style that we can apply
+            else if (currentStyle && styleLayersMap.has(currentStyle) && styleLayersMap.get(currentStyle).length > 0) {
+                // Clone the style layers to avoid modifying the originals
+                layers = JSON.parse(JSON.stringify(styleLayersMap.get(currentStyle)));
+                // Save these layers for this specific image
+                imageLayersMap.set(currentImage, layers);
+            } 
+            // Otherwise use empty layers array
+            else {
+                layers = [];
+            }
+            
+            activeLayer = layers.length > 0 ? layers[0] : null;
+            
+            updateLayerList();
+            
+            // Set up toggle buttons
+            const showOriginal = document.getElementById('showOriginal');
+            const showEdited = document.getElementById('showEdited');
+            const modalImage = document.getElementById('modalImage');
+            const textCanvas = document.getElementById('textCanvas');
+            
+            if (showOriginal) {
+                showOriginal.addEventListener('click', () => {
+                    if (showOriginal && showEdited && modalImage && textCanvas) {
+                        showOriginal.classList.add('active');
+                        showEdited.classList.remove('active');
+                        modalImage.classList.add('active');
+                        textCanvas.classList.remove('active');
+                    }
+                });
+            }
+            
+            if (showEdited) {
+                showEdited.addEventListener('click', () => {
+                    if (showOriginal && showEdited && modalImage && textCanvas) {
+                        showEdited.classList.add('active');
+                        showOriginal.classList.remove('active');
+                        textCanvas.classList.add('active');
+                        modalImage.classList.remove('active');
+                        renderCanvas();
+                    }
+                });
+            }
+            
+            // Add text layer button
+            const addTextLayerBtn = document.getElementById('addTextLayer');
+            if (addTextLayerBtn) {
+                addTextLayerBtn.addEventListener('click', addTextLayer);
+            }
+            
+            // Download buttons
+            const downloadOriginalBtn = document.getElementById('downloadOriginal');
+            if (downloadOriginalBtn) {
+                downloadOriginalBtn.addEventListener('click', downloadOriginal);
+            }
+            
+            const downloadEditedBtn = document.getElementById('downloadEdited');
+            if (downloadEditedBtn) {
+                downloadEditedBtn.addEventListener('click', downloadEdited);
+            }
+            
+            // If we have layers, render the canvas and show edited view if needed
+            if (layers.length > 0) {
+                renderCanvas();
+                // If previously the user was viewing the edited version, show that
+                if (imageLayersMap.get(currentImage + '_viewingEdited')) {
+                    if (showEdited) showEdited.click();
+                }
+            }
+            
+            // Hide layer editor initially if no active layer
+            toggleLayerEditorVisibility();
+        }
+        
+        function toggleLayerEditorVisibility() {
+            const layerEditor = document.getElementById('layerEditor');
+            if (layerEditor) {
+                if (activeLayer) {
+                    layerEditor.style.display = 'block';
+                } else {
+                    layerEditor.style.display = 'none';
+                }
+            }
+        }
+        
+        function addTextLayer() {
+            const newLayer = {
+                id: Date.now(),
+                text: "Text Layer",
+                x: 100,
+                y: 100,
+                fontSize: 30,
+                font: "Arial",
+                color: "#ffffff",
+                opacity: 1,
+                border: false,
+                borderColor: "#000000",
+                shadow: false,
+                shadowColor: "#000000",
+                shadowBlur: 5
+            };
+            
+            layers.push(newLayer);
+            
+            // Save layers for current image
+            if (currentImage) {
+                imageLayersMap.set(currentImage, layers);
+                
+                // Save layers for this style to reuse for other images
+                const currentStyle = window.imageStyleMap && window.imageStyleMap.get(currentImage);
+                if (currentStyle) {
+                    styleLayersMap.set(currentStyle, JSON.parse(JSON.stringify(layers)));
+                }
+            }
+            
+            updateLayerList();
+            selectLayer(newLayer.id);
+            renderCanvas();
+            toggleLayerEditorVisibility();
+        }
+        
+        function updateLayerList() {
+            const list = document.getElementById("layerList");
+            if (!list) return;
+            
+            list.innerHTML = "";
+            
+            layers.forEach(layer => {
+                const btn = document.createElement("button");
+                btn.className = "layer-btn";
+                if (layer === activeLayer) {
+                    btn.classList.add('active');
+                }
+                btn.innerText = layer.text || "Text Layer";
+                btn.onclick = () => selectLayer(layer.id);
+                
+                // Add delete button
+                const deleteBtn = document.createElement('span');
+                deleteBtn.className = 'delete-layer';
+                deleteBtn.innerHTML = '&times;';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteLayer(layer.id);
+                };
+                
+                btn.appendChild(deleteBtn);
+                list.appendChild(btn);
+            });
+        }
+        
+        function deleteLayer(id) {
+            const index = layers.findIndex(l => l.id === id);
+            if (index !== -1) {
+                layers.splice(index, 1);
+                
+                // Save updated layers
+                if (currentImage) {
+                    imageLayersMap.set(currentImage, layers);
+                    
+                    // Update style layers
+                    const currentStyle = window.imageStyleMap && window.imageStyleMap.get(currentImage);
+                    if (currentStyle) {
+                        styleLayersMap.set(currentStyle, JSON.parse(JSON.stringify(layers)));
+                    }
+                }
+                
+                // Update active layer
+                activeLayer = layers.length > 0 ? layers[0] : null;
+                
+                updateLayerList();
+                renderCanvas();
+                
+                if (activeLayer) {
+                    selectLayer(activeLayer.id);
+                } else {
+                    toggleLayerEditorVisibility();
+                }
+            }
+        }
+        
+        function selectLayer(id) {
+            const layer = layers.find(l => l.id === id);
+            if (!layer) return;
+            
+            activeLayer = layer;
+            const editor = document.getElementById("layerEditor");
+            if (!editor) return;
+            
+            // Show layer editor when a layer is selected
+            editor.style.display = 'block';
+            
+            const elements = {
+                textInput: document.getElementById("textInput"),
+                fontFamily: document.getElementById("fontFamily"),
+                fontSize: document.getElementById("fontSize"),
+                xSlider: document.getElementById("xSlider"),
+                ySlider: document.getElementById("ySlider"),
+                xPos: document.getElementById("xPos"),
+                yPos: document.getElementById("yPos"),
+                textColor: document.getElementById("textColor"),
+                opacity: document.getElementById("opacity"),
+                border: document.getElementById("border"),
+                borderColor: document.getElementById("borderColor"),
+                shadow: document.getElementById("shadow"),
+                shadowColor: document.getElementById("shadowColor"),
+                shadowBlur: document.getElementById("shadowBlur")
+            };
+            
+            // Only set values for elements that exist
+            if (elements.textInput) elements.textInput.value = layer.text;
+            if (elements.fontFamily) elements.fontFamily.value = layer.font;
+            if (elements.fontSize) elements.fontSize.value = layer.fontSize;
+            if (elements.xSlider) elements.xSlider.value = layer.x;
+            if (elements.ySlider) elements.ySlider.value = layer.y;
+            if (elements.xPos) elements.xPos.value = layer.x;
+            if (elements.yPos) elements.yPos.value = layer.y;
+            if (elements.textColor) elements.textColor.value = layer.color;
+            if (elements.opacity) elements.opacity.value = layer.opacity;
+            if (elements.border) elements.border.checked = layer.border;
+            if (elements.borderColor) elements.borderColor.value = layer.borderColor;
+            if (elements.shadow) elements.shadow.checked = layer.shadow;
+            if (elements.shadowColor) elements.shadowColor.value = layer.shadowColor;
+            if (elements.shadowBlur) elements.shadowBlur.value = layer.shadowBlur;
+            
+            // Update layer list to show active layer
+            updateLayerList();
+            
+            attachLayerEvents();
+        }
+        
+        function attachLayerEvents() {
+            if (!activeLayer) return;
+            
+            const update = () => {
+                if (!activeLayer) return;
+                
+                const elements = {
+                    textInput: document.getElementById("textInput"),
+                    fontFamily: document.getElementById("fontFamily"),
+                    fontSize: document.getElementById("fontSize"),
+                    xPos: document.getElementById("xPos"),
+                    yPos: document.getElementById("yPos"),
+                    textColor: document.getElementById("textColor"),
+                    opacity: document.getElementById("opacity"),
+                    border: document.getElementById("border"),
+                    borderColor: document.getElementById("borderColor"),
+                    shadow: document.getElementById("shadow"),
+                    shadowColor: document.getElementById("shadowColor"),
+                    shadowBlur: document.getElementById("shadowBlur")
+                };
+                
+                // Only update values from elements that exist
+                if (elements.textInput) activeLayer.text = elements.textInput.value;
+                if (elements.fontFamily) activeLayer.font = elements.fontFamily.value;
+                if (elements.fontSize) activeLayer.fontSize = parseInt(elements.fontSize.value);
+                if (elements.xPos) activeLayer.x = parseInt(elements.xPos.value);
+                if (elements.yPos) activeLayer.y = parseInt(elements.yPos.value);
+                if (elements.textColor) activeLayer.color = elements.textColor.value;
+                if (elements.opacity) activeLayer.opacity = parseFloat(elements.opacity.value);
+                if (elements.border) activeLayer.border = elements.border.checked;
+                if (elements.borderColor) activeLayer.borderColor = elements.borderColor.value;
+                if (elements.shadow) activeLayer.shadow = elements.shadow.checked;
+                if (elements.shadowColor) activeLayer.shadowColor = elements.shadowColor.value;
+                if (elements.shadowBlur) activeLayer.shadowBlur = parseInt(elements.shadowBlur.value);
+                
+                // Save layers for current image
+                if (currentImage) {
+                    imageLayersMap.set(currentImage, layers);
+                    
+                    // Update style layers
+                    const currentStyle = window.imageStyleMap && window.imageStyleMap.get(currentImage);
+                    if (currentStyle) {
+                        styleLayersMap.set(currentStyle, JSON.parse(JSON.stringify(layers)));
+                    }
+                }
+                
+                // Update layer list
+                updateLayerList();
+                
+                // Update canvas
+                renderCanvas();
+            };
+            
+            // Attach events to all controls
+            const ids = ["textInput", "fontFamily", "fontSize", "xPos", "yPos", "textColor", 
+                        "opacity", "border", "borderColor", "shadow", "shadowColor", "shadowBlur"];
+                        
+            ids.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.oninput = update;
+                }
+            });
+            
+            // Sliders update number inputs
+            const xSlider = document.getElementById("xSlider");
+            const xPos = document.getElementById("xPos");
+            if (xSlider && xPos) {
+                xSlider.oninput = e => {
+                    xPos.value = e.target.value;
+                    update();
+                };
+            }
+            
+            const ySlider = document.getElementById("ySlider");
+            const yPos = document.getElementById("yPos");
+            if (ySlider && yPos) {
+                ySlider.oninput = e => {
+                    yPos.value = e.target.value;
+                    update();
+                };
+            }
+        }
+        
+        function renderCanvas() {
+            if (!canvas || !ctx) return;
+            
+            // Clear canvas and draw image
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const img = document.getElementById("modalImage");
+            if (!img) return;
+            
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            // Draw text layers
+            layers.forEach(layer => {
+                if (!layer) return;
+                
+                ctx.save();
+                ctx.globalAlpha = layer.opacity;
+                ctx.font = `${layer.fontSize}px ${layer.font}`;
+                ctx.fillStyle = layer.color;
+                
+                // Add shadow if enabled
+                if (layer.shadow) {
+                    ctx.shadowColor = layer.shadowColor;
+                    ctx.shadowBlur = layer.shadowBlur;
+                    ctx.shadowOffsetX = 2;
+                    ctx.shadowOffsetY = 2;
+                }
+                
+                // Add border if enabled
+                if (layer.border) {
+                    ctx.strokeStyle = layer.borderColor;
+                    ctx.lineWidth = 2;
+                    ctx.strokeText(layer.text, layer.x, layer.y);
+                }
+                
+                // Draw text
+                ctx.fillText(layer.text, layer.x, layer.y);
+                ctx.restore();
+            });
+        }
+        
+        function downloadOriginal() {
+            const img = document.getElementById('modalImage');
+            if (!img) return;
+            
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = `generated-image-original.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function downloadEdited() {
+            if (!canvas) return;
+            
+            // Make sure canvas is rendered with latest changes
+            renderCanvas();
+            
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `generated-image-with-text.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Track which view mode the user had for each image
+        function saveViewMode() {
+            if (currentImage) {
+                const showEdited = document.getElementById('showEdited');
+                const isEditedView = showEdited && showEdited.classList.contains('active');
+                imageLayersMap.set(currentImage + '_viewingEdited', isEditedView);
+            }
+        }
+        
+        // Initialize text editor when image preview modal is shown
+        const closeModalBtn = document.querySelector('.close-modal');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                // Save view mode before closing
+                saveViewMode();
+                
+                const modalImage = document.getElementById('modalImage');
+                const textCanvas = document.getElementById('textCanvas');
+                const showOriginal = document.getElementById('showOriginal');
+                const showEdited = document.getElementById('showEdited');
+                
+                if (modalImage) modalImage.classList.add('active');
+                if (textCanvas) textCanvas.classList.remove('active');
+                if (showOriginal) showOriginal.classList.add('active');
+                if (showEdited) showEdited.classList.remove('active');
+            });
+        }
+        
+        // Hook into the modal image setting
+        const originalShowModal = window.showModal;
+        window.showModal = (imageSrc) => {
+            // Save current view mode and layers before changing image
+            saveViewMode();
+            
+            // Call the original implementation
+            originalShowModal(imageSrc);
+            
+            // Add our additional functionality
+            const modalImage = document.getElementById('modalImage');
+            if (modalImage) {
+                modalImage.onload = () => {
+                    initTextEditor();
+                };
+            }
+        };
+
+        // Hide layer editor initially
+        const layerEditor = document.getElementById('layerEditor');
+        if (layerEditor) {
+            layerEditor.style.display = 'none';
+        }
+        
+        // Expose key functions to window object for external access
+        window.saveViewMode = saveViewMode;
+        window.initTextEditor = initTextEditor;
+        window.imageStyleMap = window.imageStyleMap || new Map();
+    </script>
 </body>
 </html> 

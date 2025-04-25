@@ -1,8 +1,130 @@
-// Update the API URL to use the Render deployment URL
+// Direct access to Gemini API
 const MODEL_ID = 'gemini-2.0-flash-exp-image-generation';
-const API_URL = 'https://cart-ai.onrender.com/api/generate';
+// We'll load the API key from config
+let GEMINI_API_KEY = null;
 
-document.addEventListener('DOMContentLoaded', () => {
+// Store generated images for the carousel
+const generatedImages = [];
+// Store image style information
+const imageStyleMap = new Map();
+
+// Modal functionality
+function showModal(imageSrc) {
+    const modalImage = document.getElementById('modalImage');
+    const modal = document.getElementById('imagePreviewModal');
+    
+    if (!modalImage || !modal || !imageSrc) {
+        console.error('Modal elements not found or no image source provided');
+        return;
+    }
+    
+    // Add the image to our collection if it's not already there
+    if (!generatedImages.includes(imageSrc)) {
+        generatedImages.push(imageSrc);
+        
+        // Store the current style for this image
+        const artStyle = document.getElementById('artStyle').value;
+        imageStyleMap.set(imageSrc, artStyle);
+        
+        // Update thumbnail carousel
+        updateThumbnails(imageSrc);
+    } else {
+        // Still update thumbnails to show the active state for this image
+        updateThumbnails(imageSrc);
+    }
+    
+    // Set the modal image
+    modalImage.src = imageSrc;
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+// Update thumbnails in the carousel
+const updateThumbnails = (currentImageSrc = null) => {
+    const thumbnailsContainer = document.getElementById('imageThumbnails');
+    
+    // Clear existing thumbnails
+    thumbnailsContainer.innerHTML = '';
+    
+    // Add each generated image as a thumbnail
+    generatedImages.forEach((imgSrc, index) => {
+        const thumbnail = document.createElement('div');
+        thumbnail.className = 'thumbnail';
+        
+        // Add active class to the current image
+        if (currentImageSrc === imgSrc) {
+            thumbnail.classList.add('active');
+        }
+        
+        const img = document.createElement('img');
+        img.src = imgSrc;
+        img.alt = `Thumbnail ${index + 1}`;
+        
+        thumbnail.appendChild(img);
+        thumbnailsContainer.appendChild(thumbnail);
+        
+        // Add click event to switch to this image when clicked
+        thumbnail.addEventListener('click', () => {
+            // Update image in preview
+            document.getElementById('modalImage').src = imgSrc;
+            
+            // Update all thumbnails to remove active class
+            document.querySelectorAll('.thumbnail').forEach(thumb => {
+                thumb.classList.remove('active');
+            });
+            
+            // Add active class to this thumbnail
+            thumbnail.classList.add('active');
+        });
+    });
+};
+
+// Setup carousel navigation buttons
+function setupCarouselNavigation() {
+    const container = document.getElementById('imageThumbnails');
+    const prevBtn = document.querySelector('.carousel-nav.prev');
+    const nextBtn = document.querySelector('.carousel-nav.next');
+    
+    if (!container || !prevBtn || !nextBtn) return;
+    
+    prevBtn.addEventListener('click', () => {
+        container.scrollBy({ left: -200, behavior: 'smooth' });
+    });
+    
+    nextBtn.addEventListener('click', () => {
+        container.scrollBy({ left: 200, behavior: 'smooth' });
+    });
+}
+
+// Expose the showModal function to the global scope
+window.showModal = showModal;
+
+// Function to load config and get API key
+async function loadConfig() {
+    try {
+        // Use the CONFIG variable defined in config.js
+        GEMINI_API_KEY = CONFIG.GEMINI_API_KEY;
+        console.log('API key loaded successfully');
+        return true;
+    } catch (error) {
+        console.error('Failed to load API key:', error);
+        document.body.insertAdjacentHTML('afterbegin', `
+            <div class="api-key-error">
+                <p>⚠️ Failed to load API key. Please check your config.js file.</p>
+                <button id="dismissError">Dismiss</button>
+            </div>
+        `);
+        document.getElementById('dismissError').addEventListener('click', function() {
+            document.querySelector('.api-key-error').style.display = 'none';
+        });
+        return false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load configuration
+    await loadConfig();
+
     const generateBtn = document.getElementById('generateBtn');
     const promptInput = document.getElementById('prompt');
     const imageInput = document.getElementById('imageInput');
@@ -14,9 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultsDiv = document.getElementById('results');
     const uploadCircle = document.querySelector('.upload-circle');
     const modal = document.getElementById('imagePreviewModal');
-    const modalImage = document.getElementById('modalImage');
     const closeModal = document.querySelector('.close-modal');
-    const downloadImage = document.getElementById('downloadImage');
 
     // New elements for responsive layout
     const hamburgerMenu = document.querySelector('.hamburger-menu');
@@ -29,87 +149,104 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(sidebarOverlay);
     
     // Toggle sidebar on hamburger menu click
-    hamburgerMenu.addEventListener('click', () => {
-        sidebar.classList.add('active');
-        sidebarOverlay.classList.add('active');
-    });
+    if (hamburgerMenu && sidebar && sidebarOverlay) {
+        hamburgerMenu.addEventListener('click', () => {
+            sidebar.classList.add('active');
+            sidebarOverlay.classList.add('active');
+        });
+    }
     
     // Close sidebar when clicking the close button or overlay
-    closeSidebar.addEventListener('click', closeSidebarFunction);
-    sidebarOverlay.addEventListener('click', closeSidebarFunction);
+    if (closeSidebar) {
+        closeSidebar.addEventListener('click', closeSidebarFunction);
+    }
+    
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebarFunction);
+    }
     
     function closeSidebarFunction() {
-        sidebar.classList.remove('active');
-        sidebarOverlay.classList.remove('active');
+        if (sidebar && sidebarOverlay) {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+        }
     }
 
-    // Fixed Custom Select Functionality
-    const customSelects = document.querySelectorAll('.custom-select');
-    
-    customSelects.forEach(customSelect => {
-        const selectSelected = customSelect.querySelector('.select-selected');
-        const selectItems = customSelect.querySelector('.select-items');
-        const selectOptions = selectItems.querySelectorAll('div');
-        const selectElement = customSelect.querySelector('select');
+    // Custom select implementation
+    document.querySelectorAll('.custom-select').forEach(selectElement => {
+        const selectButton = selectElement.querySelector('.select-selected');
+        const selectOptions = selectElement.querySelector('.select-items');
+        const hiddenSelect = selectElement.querySelector('select');
         
-        // Toggle dropdown
-        selectSelected.addEventListener('click', (e) => {
-            e.stopPropagation();
-            
-            // Close all other dropdowns first
-            customSelects.forEach(otherSelect => {
-                if (otherSelect !== customSelect) {
-                    otherSelect.querySelector('.select-selected').classList.remove('active');
-                    otherSelect.querySelector('.select-items').classList.remove('active');
-                    otherSelect.querySelector('.select-items').classList.add('select-hide');
+        if (selectButton && selectOptions) {
+            // Initialize with correct value from hidden select if available
+            if (hiddenSelect && hiddenSelect.options.length > 0) {
+                const selectedOption = hiddenSelect.options[hiddenSelect.selectedIndex];
+                if (selectedOption) {
+                    selectButton.textContent = selectedOption.textContent;
                 }
+            }
+            
+            // Toggle dropdown when clicking on the select button
+            selectButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent document click from immediately closing it
+                
+                // Close all other select dropdowns
+                document.querySelectorAll('.custom-select .select-items').forEach(options => {
+                    if (options !== selectOptions) {
+                        options.classList.remove('active');
+                    }
+                });
+                
+                // Toggle the dropdown
+                selectOptions.classList.toggle('active');
+                selectButton.classList.toggle('active');
             });
             
-            // Toggle current dropdown
-            selectSelected.classList.toggle('active');
-            selectItems.classList.toggle('active');
-            selectItems.classList.toggle('select-hide');
-        });
-        
-        // Handle option selection
-        selectOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const value = e.target.getAttribute('data-value');
-                const text = e.target.textContent;
-                
-                // Update the select display
-                selectSelected.textContent = text;
-                
-                // Update the hidden select value
-                selectElement.value = value;
-                
-                // Update selected styling
-                selectOptions.forEach(opt => opt.classList.remove('same-as-selected'));
-                e.target.classList.add('same-as-selected');
-                
-                // Close dropdown
-                selectSelected.classList.remove('active');
-                selectItems.classList.remove('active');
-                selectItems.classList.add('select-hide');
-                
-                // Trigger change event on the select element
-                const event = new Event('change');
-                selectElement.dispatchEvent(event);
+            // Add click event to select options
+            selectOptions.querySelectorAll('div').forEach(option => {
+                option.addEventListener('click', () => {
+                    const value = option.getAttribute('data-value');
+                    const text = option.textContent;
+                    
+                    // Update the selected option text
+                    selectButton.textContent = text;
+                    
+                    // Update the hidden select value if available
+                    if (hiddenSelect) {
+                        hiddenSelect.value = value;
+                        
+                        // Trigger native select change event
+                        const changeEvent = new Event('change', { bubbles: true });
+                        hiddenSelect.dispatchEvent(changeEvent);
+                    }
+                    
+                    // Mark this option as selected
+                    selectOptions.querySelectorAll('div').forEach(opt => {
+                        opt.classList.remove('same-as-selected');
+                    });
+                    option.classList.add('same-as-selected');
+                    
+                    // Close dropdown
+                    selectOptions.classList.remove('active');
+                    selectButton.classList.remove('active');
+                    
+                    // Trigger change event for the custom select
+                    const event = new Event('change', { bubbles: true });
+                    selectElement.dispatchEvent(event);
+                });
             });
-        });
+        }
     });
     
-    // Close all select boxes when clicking outside
+    // Close all custom selects when clicking outside
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.custom-select')) {
-            customSelects.forEach(customSelect => {
-                const selectSelected = customSelect.querySelector('.select-selected');
-                const selectItems = customSelect.querySelector('.select-items');
-                
-                selectSelected.classList.remove('active');
-                selectItems.classList.remove('active');
-                selectItems.classList.add('select-hide');
+        if (!e.target.closest('.select-selected') && !e.target.closest('.select-items')) {
+            document.querySelectorAll('.custom-select .select-items.active').forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
+            document.querySelectorAll('.select-selected.active').forEach(button => {
+                button.classList.remove('active');
             });
         }
     });
@@ -180,41 +317,53 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Modal functionality
-    function showModal(imageSrc) {
-        modalImage.src = imageSrc;
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-    }
-
     function hideModal() {
-        modal.classList.remove('show');
-        document.body.style.overflow = '';
+        if (modal) {
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
     }
 
-    closeModal.addEventListener('click', hideModal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
+    // Initialize event listeners only if elements exist
+    if (closeModal) {
+        closeModal.addEventListener('click', hideModal);
+    }
+    
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                hideModal();
+            }
+        });
+    }
+
+    // Keyboard event listener to close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
             hideModal();
         }
     });
 
-    // Download functionality
-    downloadImage.addEventListener('click', () => {
-        const link = document.createElement('a');
-        link.href = modalImage.src;
-        link.download = 'generated-image.png';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    });
-
-    // Validate image count input
-    imageCountInput.addEventListener('input', () => {
-        let value = parseInt(imageCountInput.value);
-        if (value < 1) value = 1;
-        if (value > 6) value = 6;
-        imageCountInput.value = value;
-    });
+    // Validate image count input and update UI
+    const imageCountSelect = document.getElementById('imageCount');
+    if (imageCountSelect) {
+        imageCountSelect.addEventListener('change', () => {
+            let value = parseInt(imageCountSelect.value);
+            if (value < 1) value = 1;
+            if (value > 6) value = 6;
+            imageCountSelect.value = value;
+            
+            // Also update the custom select text if needed
+            const customSelect = imageCountSelect.closest('.custom-select');
+            if (customSelect) {
+                const selectButton = customSelect.querySelector('.select-selected');
+                if (selectButton) {
+                    const suffix = value === 1 ? ' Image' : ' Images';
+                    selectButton.textContent = value + suffix;
+                }
+            }
+        });
+    }
 
     // Art Style variables
     const styleSearch = document.getElementById('styleSearch');
@@ -260,7 +409,14 @@ document.addEventListener('DOMContentLoaded', () => {
         temperatureValue.textContent = this.value;
     });
 
+    // Generate button click handler
     generateBtn.addEventListener('click', async () => {
+        // Check if API key is configured
+        if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+            alert('Please set your Gemini API key in config.js before generating images.');
+            return;
+        }
+        
         const prompt = promptInput.value.trim();
         const imageCount = Math.min(6, Math.max(1, parseInt(imageCountInput.value)));
         const imageSize = imageSizeInput.value; // Get the selected image size
@@ -355,98 +511,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        const processStreamResponse = async (reader, container, index) => {
-            const decoder = new TextDecoder("utf-8");
-            let buffer = "";
-            let progress = 0;
-            
-            progress = 20;
-            updateProgress(container, progress);
-            
-            const progressInterval = setInterval(() => {
-                if (progress < 90) {
-                    progress += Math.random() * 15;
-                    updateProgress(container, Math.min(progress, 90));
-                }
-            }, 300);
-
-            try {
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) {
-                        // If done without finding image data, show error
-                        if (buffer.indexOf('"inlineData"') === -1) {
-                            clearInterval(progressInterval);
-                            updateStatus(container, 'error', 'No image data received from API');
-                            return false;
-                        }
-                        break;
-                    }
-                    
-                    const chunk = decoder.decode(value, { stream: true });
-                    buffer += chunk;
-
-                    if (buffer.indexOf('"inlineData"') !== -1) {
-                        try {
-                            const imageMatch = buffer.match(/"inlineData":\s*{\s*"mimeType":\s*"image\/png",\s*"data":\s*"([^"]+)"/);
-                            if (imageMatch && imageMatch[1]) {
-                                clearInterval(progressInterval);
-                                updateProgress(container, 100);
-                                updateStatus(container, 'complete');
-                                
-                                // Remove loading animation if present
-                                const loadingAnimation = container.querySelector('.loading-animation');
-                                if (loadingAnimation) {
-                                    loadingAnimation.remove();
-                                }
-                                
-                                const img = document.createElement('img');
-                                const imageSrc = `data:image/png;base64,${imageMatch[1]}`;
-                                img.src = imageSrc;
-                                img.alt = `Generated Image ${index + 1}`;
-                                container.insertBefore(img, container.querySelector('.progress-container'));
-                                
-                                // Add click event for preview
-                                img.addEventListener('click', () => showModal(imageSrc));
-                                
-                                // Show download button
-                                const downloadBtn = container.querySelector('.download-btn');
-                                downloadBtn.style.display = 'flex';
-                                downloadBtn.addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    const link = document.createElement('a');
-                                    link.href = imageSrc;
-                                    link.download = `generated-image-${index + 1}.png`;
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                });
-                                
-                                return true;
-                            }
-                        } catch (e) {
-                            // Continue even if parsing fails
-                        }
-                    }
-                }
-            } catch (err) {
-                clearInterval(progressInterval);
-                updateStatus(container, 'error', err.message);
-                console.error(`Error processing stream:`, err);
-                
-                // Show retry button
-                const retryBtn = container.querySelector('.retry-btn');
-                if (retryBtn) {
-                    retryBtn.style.display = 'flex';
-                }
-                
-                return false;
-            } finally {
-                clearInterval(progressInterval);
-            }
-            return false;
-        };
-
         const generateSingleImage = async (index) => {
             const container = createImageContainer(index);
             
@@ -467,7 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Get the selected art style
-                const artStyle = artStyleInput.value;
+                const artStyle = document.getElementById('artStyle').value;
                 
                 // Add art style to the prompt if selected
                 let promptText = promptInput.value.trim();
@@ -513,7 +577,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
 
-                const response = await fetch(API_URL, {
+                // Call Gemini API directly 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`;
+                const response = await fetch(apiUrl, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -538,7 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                             // Special handling for common error cases
                             if (errorMessage.includes('API key')) {
-                                errorMessage = 'Missing or invalid API key. Check the server configuration.';
+                                errorMessage = 'Missing or invalid API key. Check your config.js file.';
                             } else if (response.status === 429) {
                                 errorMessage = 'Rate limit exceeded. Please try again later.';
                             } else if (response.status === 500) {
@@ -552,11 +618,83 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(errorMessage);
                 }
 
-                const reader = response.body.getReader();
-                await processStreamResponse(reader, container, index);
+                // Process the JSON response directly
+                const data = await response.json();
+                
+                // Show progress updates
+                updateProgress(container, 90);
+                
+                if (data && data.candidates && data.candidates.length > 0) {
+                    const parts = data.candidates[0].content.parts;
+                    const imagePart = parts.find(part => part.inlineData && part.inlineData.mimeType.startsWith('image/'));
+                    
+                    if (imagePart && imagePart.inlineData && imagePart.inlineData.data) {
+                        updateProgress(container, 100);
+                        updateStatus(container, 'complete');
+                        
+                        // Remove loading animation if present
+                        const loadingAnimation = container.querySelector('.loading-animation');
+                        if (loadingAnimation) {
+                            loadingAnimation.remove();
+                        }
+                        
+                        // Create and set up the image
+                        const img = document.createElement('img');
+                        const imageSrc = `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
+                        img.src = imageSrc;
+                        img.alt = `Generated Image ${index + 1}`;
+                        container.insertBefore(img, container.querySelector('.progress-container'));
+                        
+                        // Store the image in our collection
+                        if (!generatedImages.includes(imageSrc)) {
+                            generatedImages.push(imageSrc);
+                            
+                            // Store the current style for this image
+                            imageStyleMap.set(imageSrc, artStyle);
+                        }
+                        
+                        // Always update thumbnails regardless of whether the modal is open
+                        updateThumbnails(imageSrc);
+                        
+                        // Add click event for preview
+                        img.addEventListener('click', () => {
+                            // Ensure the modal opens with this image
+                            showModal(imageSrc);
+                        });
+                        
+                        // If this is the first image and only generating one, automatically open the modal
+                        if (index === 0 && imageCount === 1) {
+                            // Short delay to allow UI to update first
+                            setTimeout(() => showModal(imageSrc), 500);
+                        }
+                        
+                        // Show download button
+                        const downloadBtn = container.querySelector('.download-btn');
+                        downloadBtn.style.display = 'flex';
+                        downloadBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const link = document.createElement('a');
+                            link.href = imageSrc;
+                            link.download = `generated-image-${index + 1}.png`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        });
+                    } else {
+                        updateStatus(container, 'error', 'No image data found in the API response');
+                    }
+                } else {
+                    updateStatus(container, 'error', 'Invalid response from API');
+                }
             } catch (err) {
                 updateStatus(container, 'error', err.message);
                 console.error(`Error generating image ${index + 1}:`, err);
+                
+                // Show retry button
+                const retryBtn = container.querySelector('.retry-btn');
+                if (retryBtn) {
+                    retryBtn.style.display = 'flex';
+                }
             }
         };
 
