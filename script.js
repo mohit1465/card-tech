@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         generateBtn.disabled = true;
         generateBtn.classList.add('loading');
         const originalBtnText = generateBtn.innerHTML;
-        generateBtn.innerHTML = '<div class="btn-spinner"></div><span>Generating...</span>';
+        generateBtn.innerHTML = '<span>Generating...</span>';
         
         // Clear previous results
         resultsDiv.querySelector('.image-grid').innerHTML = '';
@@ -917,6 +917,3 @@ function setupTabSwitching() {
         activateTab(layersTab, layersContent);
     });
 }
-
-
-// ... existing code ... 
