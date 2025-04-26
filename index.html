@@ -221,13 +221,13 @@
                                 
                                 <div class="edit-group">
                                     <label>Position X</label>
-                                    <input type="range" id="xSlider" min="0" max="1000" value="100">
+                                    <input type="range" id="xSlider" min="-1000" max="1000" value="100">
                                     <input type="number" id="xPos" value="100">
                                 </div>
                                 
                                 <div class="edit-group">
                                     <label>Position Y</label>
-                                    <input type="range" id="ySlider" min="0" max="1000" value="100">
+                                    <input type="range" id="ySlider" min="-1000" max="1000" value="100">
                                     <input type="number" id="yPos" value="100">
                                 </div>
                                 
@@ -296,12 +296,12 @@
                                         <div class="input-group">
                                             <span>X</span>
                                             <input type="number" id="imageXPos" value="100">
-                                            <input type="range" id="imageXSlider" min="0" max="1000" value="100">
+                                            <input type="range" id="imageXSlider" min="-1000" max="1000" value="100">
                                         </div>
                                         <div class="input-group">
                                             <span>Y</span>
                                             <input type="number" id="imageYPos" value="100">
-                                            <input type="range" id="imageYSlider" min="0" max="1000" value="100">
+                                            <input type="range" id="imageYSlider" min="-1000" max="1000" value="100">
                                         </div>
                                     </div>
                                 </div>
@@ -511,6 +511,12 @@
         }
         
         function addTextLayer() {
+            showEdited.classList.add('active');
+            showOriginal.classList.remove('active');
+            textCanvas.classList.add('active');
+            modalImage.classList.remove('active');
+            renderCanvas();
+
             const newLayer = {
                 id: Date.now(),
                 type: 'text',  // Specify layer type
@@ -530,7 +536,13 @@
             addLayer(newLayer);
         }
 
+        // Modify the addImageLayer function
         function addImageLayer() {
+            showEdited.classList.add('active');
+            showOriginal.classList.remove('active');
+            textCanvas.classList.add('active');
+            modalImage.classList.remove('active');
+            
             const fileInput = document.getElementById('layerImageInput');
             fileInput.onchange = function(e) {
                 const file = e.target.files[0];
@@ -540,7 +552,7 @@
                         const img = new Image();
                         img.onload = function() {
                             // Calculate initial dimensions maintaining aspect ratio
-                            const maxInitialSize = 300; // Maximum initial dimension
+                            const maxInitialSize = 300;
                             let width = img.width;
                             let height = img.height;
                             
@@ -566,8 +578,28 @@
                                 opacity: 1,
                                 name: `Image Layer ${Date.now()}`
                             };
+                            
+                            // Store image in cache before adding layer
                             imageLayerCache.set(newLayer.id, img);
-                            addLayer(newLayer);
+                            
+                            // Add layer
+                            layers.push(newLayer);
+                            activeLayer = newLayer;
+                            
+                            // Save changes
+                            if (currentImage) {
+                                imageLayersMap.set(currentImage, layers);
+                                const currentStyle = window.imageStyleMap && window.imageStyleMap.get(currentImage);
+                                if (currentStyle) {
+                                    styleLayersMap.set(currentStyle, JSON.parse(JSON.stringify(layers)));
+                                }
+                            }
+                            
+                            // Update UI and render immediately
+                            updateLayerList();
+                            renderCanvas(); // Immediate render
+                            selectLayer(newLayer.id);
+                            toggleLayerEditorVisibility();
                         };
                         img.src = event.target.result;
                     };
@@ -652,6 +684,22 @@
                 }
             };
             fileInput.click();
+        }
+
+        // Add this function to handle boundary constraints
+        function constrainToBounds(layer) {
+            if (!layer) return;
+
+            // Allow layers to extend up to their own dimensions beyond left/top boundaries
+            if (layer.type === 'text') {
+                // For text layers, use fontSize as height
+                layer.x = Math.max(-layer.fontSize, layer.x);
+                layer.y = Math.max(0, layer.y); // Keep text baseline visible
+            } else if (layer.type === 'image') {
+                // For image layers, use width and height
+                layer.x = Math.max(-layer.width, layer.x);
+                layer.y = Math.max(-layer.height, layer.y);
+            }
         }
 
         // Add this function before addLayer()
@@ -919,7 +967,7 @@
             attachLayerEvents();
         }
 
-        // Add these functions to handle image layer properties
+        // Update the attachImageLayerEvents update function
         function attachImageLayerEvents() {
             if (!activeLayer || activeLayer.type !== 'image') return;
             
@@ -950,6 +998,15 @@
                 activeLayer.rotation = parseInt(controls.imageRotation.value);
                 activeLayer.blendMode = controls.blendMode.value;
                 activeLayer.name = controls.imageLayerName.value;
+
+                // Apply constraints
+                constrainToBounds(activeLayer);
+
+                // Update controls with constrained values
+                controls.imageXPos.value = activeLayer.x;
+                controls.imageYPos.value = activeLayer.y;
+                controls.imageXSlider.value = activeLayer.x;
+                controls.imageYSlider.value = activeLayer.y;
 
                 // Update display values
                 document.getElementById('opacityValue').textContent = `${Math.round(activeLayer.opacity * 100)}%`;
@@ -1083,6 +1140,7 @@
             };
         }
 
+        // Update the attachLayerEvents update function
         function attachLayerEvents() {
             if (!activeLayer) return;
             
