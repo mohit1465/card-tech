@@ -1,4 +1,4 @@
- // Text layer editor functionality
+// Text layer editor functionality
  let canvas, ctx;
  let layers = [];
  let activeLayer = null;
