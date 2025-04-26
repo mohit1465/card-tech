@@ -917,3 +917,58 @@ function setupTabSwitching() {
         activateTab(layersTab, layersContent);
     });
 }
+
+// Add Layer Dropdown Toggle
+document.getElementById('addLayerBtn').addEventListener('click', (e) => {
+    const dropdown = document.querySelector('.layer-dropdown');
+    dropdown.classList.toggle('show');
+    e.stopPropagation();
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', () => {
+    document.querySelector('.layer-dropdown').classList.remove('show');
+});
+
+// Image Layer Functions
+function replaceLayerImage() {
+    if (!activeLayer || activeLayer.type !== 'image') return;
+    document.getElementById('layerImageInput').click();
+}
+
+// Keep aspect ratio when resizing
+let maintainAspect = true;
+let aspectRatio = 1;
+
+document.getElementById('maintainAspectRatio').addEventListener('click', (e) => {
+    maintainAspect = !maintainAspect;
+    e.target.textContent = maintainAspect ? '🔒' : '🔓';
+});
+
+// Handle image size changes
+document.getElementById('imageWidth').addEventListener('input', (e) => {
+    if (maintainAspect) {
+        const height = Math.round(parseInt(e.target.value) / aspectRatio);
+        document.getElementById('imageHeight').value = height;
+        document.getElementById('imageHeightSlider').value = height;
+    }
+    updateLayer();
+});
+
+document.getElementById('imageHeight').addEventListener('input', (e) => {
+    if (maintainAspect) {
+        const width = Math.round(parseInt(e.target.value) * aspectRatio);
+        document.getElementById('imageWidth').value = width;
+        document.getElementById('imageWidthSlider').value = width;
+    }
+    updateLayer();
+});
+
+// Update displays
+document.getElementById('imageOpacity').addEventListener('input', (e) => {
+    document.getElementById('opacityValue').textContent = `${Math.round(e.target.value * 100)}%`;
+});
+
+document.getElementById('imageRotation').addEventListener('input', (e) => {
+    document.getElementById('rotationValue').textContent = `${e.target.value}°`;
+});

@@ -251,11 +251,104 @@
                                     <input type="color" id="shadowColor" value="#000000">
                                     <input type="range" id="shadowBlur" min="0" max="30" value="5">
                                 </div>
+
+                            </div>
+
+                            <div class="edit-group image-layer-controls" style="display: none;">
+                                <h2>Edit Image</h2>
+                                <hr>
+                                <div class="edit-group">
+                                    <label>Layer Name</label>
+                                    <input type="text" id="imageLayerName" placeholder="Layer name...">
+                                </div>
+
+                                <div class="edit-group">
+                                    <label>Image</label>
+                                    <div class="image-preview-container">
+                                        <img id="layerImagePreview" alt="Layer image preview">
+                                        <button class="text-btn replace-image-btn" onclick="replaceLayerImage()">
+                                            Replace Image
+                                        </button>
+                                    </div>
+                                    <input type="file" id="layerImageInput" accept="image/*" style="display: none;">
+                                </div>
+                                
+                                <div class="edit-group">
+                                    <label>Size</label>
+                                    <div class="size-inputs">
+                                        <div class="input-group">
+                                            <span>Width</span>
+                                            <input type="number" id="imageWidth" value="100">
+                                            <input type="range" id="imageWidthSlider" min="10" max="1000" value="100">
+                                        </div>
+                                        <div class="input-group">
+                                            <span>Height</span>
+                                            <input type="number" id="imageHeight" value="100">
+                                            <input type="range" id="imageHeightSlider" min="10" max="1000" value="100">
+                                        </div>
+                                        <button class="text-btn small" id="maintainAspectRatio" title="Lock aspect ratio">🔒</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="edit-group">
+                                    <label>Position</label>
+                                    <div class="position-inputs">
+                                        <div class="input-group">
+                                            <span>X</span>
+                                            <input type="number" id="imageXPos" value="100">
+                                            <input type="range" id="imageXSlider" min="0" max="1000" value="100">
+                                        </div>
+                                        <div class="input-group">
+                                            <span>Y</span>
+                                            <input type="number" id="imageYPos" value="100">
+                                            <input type="range" id="imageYSlider" min="0" max="1000" value="100">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="edit-group">
+                                    <label>Opacity</label>
+                                    <input type="range" id="imageOpacity" min="0" max="1" step="0.05" value="1">
+                                    <span class="value-display" id="opacityValue">100%</span>
+                                </div>
+
+                                <div class="edit-group">
+                                    <label>Blend Mode</label>
+                                    <select id="blendMode">
+                                        <option value="normal">Normal</option>
+                                        <option value="multiply">Multiply</option>
+                                        <option value="screen">Screen</option>
+                                        <option value="overlay">Overlay</option>
+                                        <option value="darken">Darken</option>
+                                        <option value="lighten">Lighten</option>
+                                    </select>
+                                </div>
+
+                                <div class="edit-group">
+                                    <label>Rotation</label>
+                                    <input type="range" id="imageRotation" min="0" max="360" value="0">
+                                    <span class="value-display" id="rotationValue">0°</span>
+                                </div>
                             </div>
                         </div>
                         <div id="layersContent" class="tab-content">
                             <div class="text-controls">
-                                <button id="addTextLayer" class="text-btn">+ Add Text</button>
+                                <div class="layer-actions">
+                                    <button class="text-btn dropdown-toggle" id="addLayerBtn">
+                                        + Add Layer
+                                        <span class="caret">▼</span>
+                                    </button>
+                                    <div class="layer-dropdown">
+                                        <div class="dropdown-item" onclick="addTextLayer()">
+                                            <span class="icon">T</span>
+                                            Text Layer
+                                        </div>
+                                        <div class="dropdown-item" onclick="addImageLayer()">
+                                            <span class="icon">🖼️</span>
+                                            Image Layer
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="layer-list" id="layerList"></div>
                             </div>
                         </div>
@@ -288,7 +381,8 @@
         let layers = [];
         let activeLayer = null;
         let currentImage = null;
-        
+        let imageLayerCache = new Map(); // Cache for loaded images
+
         // Store layers for each image and style
         const imageLayersMap = new Map();
         // Store style-specific layers to reuse across images with the same style
@@ -374,6 +468,12 @@
             if (addTextLayerBtn) {
                 addTextLayerBtn.addEventListener('click', addTextLayer);
             }
+
+            // Add image layer button
+            const addImageLayerBtn = document.getElementById('addImageLayer');
+            if (addImageLayerBtn) {
+                addImageLayerBtn.addEventListener('click', addImageLayer);
+            }
             
             // Download buttons
             const downloadOriginalBtn = document.getElementById('downloadOriginal');
@@ -413,6 +513,7 @@
         function addTextLayer() {
             const newLayer = {
                 id: Date.now(),
+                type: 'text',  // Specify layer type
                 text: "Text Layer",
                 x: 100,
                 y: 100,
@@ -426,14 +527,169 @@
                 shadowColor: "#000000",
                 shadowBlur: 5
             };
+            addLayer(newLayer);
+        }
+
+        function addImageLayer() {
+            const fileInput = document.getElementById('layerImageInput');
+            fileInput.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = new Image();
+                        img.onload = function() {
+                            // Calculate initial dimensions maintaining aspect ratio
+                            const maxInitialSize = 300; // Maximum initial dimension
+                            let width = img.width;
+                            let height = img.height;
+                            
+                            if (width > maxInitialSize || height > maxInitialSize) {
+                                const ratio = img.width / img.height;
+                                if (width > height) {
+                                    width = maxInitialSize;
+                                    height = Math.round(width / ratio);
+                                } else {
+                                    height = maxInitialSize;
+                                    width = Math.round(height * ratio);
+                                }
+                            }
+
+                            const newLayer = {
+                                id: Date.now(),
+                                type: 'image',
+                                imageData: event.target.result,
+                                x: 100,
+                                y: 100,
+                                width: width,
+                                height: height,
+                                opacity: 1,
+                                name: `Image Layer ${Date.now()}`
+                            };
+                            imageLayerCache.set(newLayer.id, img);
+                            addLayer(newLayer);
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            fileInput.click();
+        }
+
+        // Add this function to handle image replacement
+        function replaceLayerImage() {
+            if (!activeLayer || activeLayer.type !== 'image') return;
             
-            layers.push(newLayer);
+            const fileInput = document.getElementById('layerImageInput');
+            fileInput.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = new Image();
+                        img.onload = function() {
+                            // Update existing layer instead of creating new one
+                            activeLayer.imageData = event.target.result;
+                            
+                            // Store new image in cache
+                            imageLayerCache.set(activeLayer.id, img);
+                            
+                            // Update preview
+                            const preview = document.getElementById('layerImagePreview');
+                            if (preview) {
+                                preview.src = event.target.result;
+                            }
+                            
+                            // Maintain aspect ratio if locked
+                            const aspectLockBtn = document.getElementById('maintainAspectRatio');
+                            const maintainAspect = aspectLockBtn?.textContent === '🔒';
+                            
+                            if (maintainAspect) {
+                                const aspectRatio = img.width / img.height;
+                                const newWidth = activeLayer.height * aspectRatio;
+                                activeLayer.width = newWidth;
+                                
+                                // Update width controls
+                                const widthInput = document.getElementById('imageWidth');
+                                const widthSlider = document.getElementById('imageWidthSlider');
+                                if (widthInput) widthInput.value = newWidth;
+                                if (widthSlider) widthSlider.value = newWidth;
+                            } else {
+                                // Update dimensions to match new image
+                                activeLayer.width = img.width;
+                                activeLayer.height = img.height;
+                                
+                                // Update dimension controls
+                                const controls = {
+                                    imageWidth: document.getElementById('imageWidth'),
+                                    imageHeight: document.getElementById('imageHeight'),
+                                    imageWidthSlider: document.getElementById('imageWidthSlider'),
+                                    imageHeightSlider: document.getElementById('imageHeightSlider')
+                                };
+                                
+                                if (controls.imageWidth) controls.imageWidth.value = img.width;
+                                if (controls.imageHeight) controls.imageHeight.value = img.height;
+                                if (controls.imageWidthSlider) controls.imageWidthSlider.value = img.width;
+                                if (controls.imageHeightSlider) controls.imageHeightSlider.value = img.height;
+                            }
+                            
+                            // Save changes and update canvas
+                            if (currentImage) {
+                                imageLayersMap.set(currentImage, layers);
+                                const currentStyle = window.imageStyleMap && window.imageStyleMap.get(currentImage);
+                                if (currentStyle) {
+                                    styleLayersMap.set(currentStyle, JSON.parse(JSON.stringify(layers)));
+                                }
+                            }
+                            
+                            updateLayerList();
+                            renderCanvas();
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            fileInput.click();
+        }
+
+        // Add this function before addLayer()
+        function ensureEditorsExist() {
+            // Check if required editor elements exist
+            const textEditor = document.getElementById("layerEditor");
+            const imageEditor = document.querySelector('.image-layer-controls');
+            const layerList = document.getElementById("layerList");
+            const editorPanel = document.querySelector('.text-editor-panel');
+
+            // Return true only if all required elements are found
+            return textEditor && imageEditor && layerList && editorPanel;
+        }
+
+        // Then update the addLayer function to handle initialization better
+        function addLayer(layer) {
+            // First try to ensure editors exist
+            if (!ensureEditorsExist()) {
+                // If not ready, wait and retry with a maximum number of attempts
+                if (!window.initAttempts) window.initAttempts = 0;
+                if (window.initAttempts < 10) { // Limit retries to prevent infinite loop
+                    window.initAttempts++;
+                    console.warn(`Editors not ready, retry attempt ${window.initAttempts}...`);
+                    setTimeout(() => addLayer(layer), 100);
+                    return;
+                } else {
+                    console.error('Failed to initialize editors after multiple attempts');
+                    return;
+                }
+            }
             
-            // Save layers for current image
+            // Reset attempts counter on success
+            window.initAttempts = 0;
+            
+            // Proceed with adding the layer
+            layers.push(layer);
             if (currentImage) {
                 imageLayersMap.set(currentImage, layers);
-                
-                // Save layers for this style to reuse for other images
                 const currentStyle = window.imageStyleMap && window.imageStyleMap.get(currentImage);
                 if (currentStyle) {
                     styleLayersMap.set(currentStyle, JSON.parse(JSON.stringify(layers)));
@@ -441,27 +697,58 @@
             }
             
             updateLayerList();
-            selectLayer(newLayer.id);
+            selectLayer(layer.id);
             renderCanvas();
             toggleLayerEditorVisibility();
         }
-        
+
+        // Modify the updateLayerList function
         function updateLayerList() {
             const list = document.getElementById("layerList");
             if (!list) return;
             
             list.innerHTML = "";
             
-            layers.forEach(layer => {
+            // Reverse the array for display (so index 0 appears at bottom)
+            [...layers].reverse().forEach((layer, reversedIndex) => {
+                const actualIndex = layers.length - 1 - reversedIndex;
                 const btn = document.createElement("button");
                 btn.className = "layer-btn";
-                if (layer === activeLayer) {
+                if (layer.id === activeLayer?.id) {
                     btn.classList.add('active');
                 }
-                btn.innerText = layer.text || "Text Layer";
-                btn.onclick = () => selectLayer(layer.id);
-                
-                // Add delete button
+
+                const layerName = document.createElement('span');
+                layerName.innerText = layer.type === 'image' ? 
+                    (layer.name || `Image Layer ${layer.id}`) : 
+                    (layer.text || "Text Layer");
+
+                const controls = document.createElement('div');
+                controls.className = 'layer-controls';
+
+                // Forward button
+                const forwardBtn = document.createElement('button');
+                forwardBtn.className = 'layer-order-btn';
+                forwardBtn.innerHTML = '↑';
+                forwardBtn.title = 'Move layer forward';
+                forwardBtn.disabled = actualIndex === layers.length - 1;
+                forwardBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    moveLayer(actualIndex, actualIndex + 1);
+                };
+
+                // Backward button
+                const backwardBtn = document.createElement('button');
+                backwardBtn.className = 'layer-order-btn';
+                backwardBtn.innerHTML = '↓';
+                backwardBtn.title = 'Move layer backward';
+                backwardBtn.disabled = actualIndex === 0;
+                backwardBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    moveLayer(actualIndex, actualIndex - 1);
+                };
+
+                // Delete button
                 const deleteBtn = document.createElement('span');
                 deleteBtn.className = 'delete-layer';
                 deleteBtn.innerHTML = '&times;';
@@ -469,10 +756,38 @@
                     e.stopPropagation();
                     deleteLayer(layer.id);
                 };
+
+                controls.appendChild(forwardBtn);
+                controls.appendChild(backwardBtn);
+                controls.appendChild(deleteBtn);
+
+                btn.appendChild(layerName);
+                btn.appendChild(controls);
+                btn.onclick = () => selectLayer(layer.id);
                 
-                btn.appendChild(deleteBtn);
                 list.appendChild(btn);
             });
+        }
+
+        // Add the moveLayer function
+        function moveLayer(fromIndex, toIndex) {
+            if (toIndex < 0 || toIndex >= layers.length) return;
+            
+            const layer = layers[fromIndex];
+            layers.splice(fromIndex, 1);
+            layers.splice(toIndex, 0, layer);
+            
+            // Save updated layers
+            if (currentImage) {
+                imageLayersMap.set(currentImage, layers);
+                const currentStyle = window.imageStyleMap && window.imageStyleMap.get(currentImage);
+                if (currentStyle) {
+                    styleLayersMap.set(currentStyle, JSON.parse(JSON.stringify(layers)));
+                }
+            }
+            
+            updateLayerList();
+            renderCanvas();
         }
         
         function deleteLayer(id) {
@@ -510,51 +825,264 @@
             if (!layer) return;
             
             activeLayer = layer;
-            const editor = document.getElementById("layerEditor");
-            if (!editor) return;
             
-            // Show layer editor when a layer is selected
-            editor.style.display = 'block';
+            // Get both editor containers
+            const textEditor = document.getElementById("layerEditor");
+            const imageEditor = document.querySelector('.image-layer-controls');
             
-            const elements = {
-                textInput: document.getElementById("textInput"),
-                fontFamily: document.getElementById("fontFamily"),
-                fontSize: document.getElementById("fontSize"),
-                xSlider: document.getElementById("xSlider"),
-                ySlider: document.getElementById("ySlider"),
-                xPos: document.getElementById("xPos"),
-                yPos: document.getElementById("yPos"),
-                textColor: document.getElementById("textColor"),
-                opacity: document.getElementById("opacity"),
-                border: document.getElementById("border"),
-                borderColor: document.getElementById("borderColor"),
-                shadow: document.getElementById("shadow"),
-                shadowColor: document.getElementById("shadowColor"),
-                shadowBlur: document.getElementById("shadowBlur")
-            };
+            if (!textEditor || !imageEditor) {
+                console.warn('Editor containers not found, waiting for DOM...');
+                // Wait for DOM to be ready
+                setTimeout(() => selectLayer(id), 100);
+                return;
+            }
             
-            // Only set values for elements that exist
-            if (elements.textInput) elements.textInput.value = layer.text;
-            if (elements.fontFamily) elements.fontFamily.value = layer.font;
-            if (elements.fontSize) elements.fontSize.value = layer.fontSize;
-            if (elements.xSlider) elements.xSlider.value = layer.x;
-            if (elements.ySlider) elements.ySlider.value = layer.y;
-            if (elements.xPos) elements.xPos.value = layer.x;
-            if (elements.yPos) elements.yPos.value = layer.y;
-            if (elements.textColor) elements.textColor.value = layer.color;
-            if (elements.opacity) elements.opacity.value = layer.opacity;
-            if (elements.border) elements.border.checked = layer.border;
-            if (elements.borderColor) elements.borderColor.value = layer.borderColor;
-            if (elements.shadow) elements.shadow.checked = layer.shadow;
-            if (elements.shadowColor) elements.shadowColor.value = layer.shadowColor;
-            if (elements.shadowBlur) elements.shadowBlur.value = layer.shadowBlur;
+            // Show appropriate editor based on layer type
+            if (layer.type === 'text') {
+                textEditor.style.display = 'block';
+                imageEditor.style.display = 'none';
+
+                updateLayerList();
+                
+                // Set text controls values
+                const controls = {
+                    textInput: document.getElementById("textInput"),
+                    fontFamily: document.getElementById("fontFamily"),
+                    fontSize: document.getElementById("fontSize"),
+                    xSlider: document.getElementById("xSlider"),
+                    ySlider: document.getElementById("ySlider"),
+                    xPos: document.getElementById("xPos"),
+                    yPos: document.getElementById("yPos"),
+                    textColor: document.getElementById("textColor"),
+                    opacity: document.getElementById("opacity"),
+                    border: document.getElementById("border"),
+                    borderColor: document.getElementById("borderColor"),
+                    shadow: document.getElementById("shadow"),
+                    shadowColor: document.getElementById("shadowColor"),
+                    shadowBlur: document.getElementById("shadowBlur")
+                };
+                
+                // Safely set text layer values
+                Object.keys(controls).forEach(key => {
+                    if (controls[key]) {
+                        const value = layer[key.replace('Slider', '')];
+                        if (value !== undefined) {
+                            if (controls[key].type === 'checkbox') {
+                                controls[key].checked = value;
+                            } else {
+                                controls[key].value = value;
+                            }
+                        }
+                    }
+                });
+                
+            } else if (layer.type === 'image') {
+                textEditor.style.display = 'none';
+                imageEditor.style.display = 'block';
+                
+                updateLayerList();
+                
+                // Set image controls values and attach events
+                const controls = {
+                    imageLayerName: document.getElementById('imageLayerName'),
+                    imageWidth: document.getElementById('imageWidth'),
+                    imageHeight: document.getElementById('imageHeight'),
+                    imageXPos: document.getElementById('imageXPos'),
+                    imageYPos: document.getElementById('imageYPos'),
+                    imageOpacity: document.getElementById('imageOpacity'),
+                    blendMode: document.getElementById('blendMode'),
+                    imageRotation: document.getElementById('imageRotation'),
+                    layerImagePreview: document.getElementById('layerImagePreview')
+                };
+                
+                // Set values
+                if (controls.imageLayerName) controls.imageLayerName.value = layer.name || `Image Layer ${layer.id}`;
+                if (controls.imageWidth) controls.imageWidth.value = layer.width || 100;
+                if (controls.imageHeight) controls.imageHeight.value = layer.height || 100;
+                if (controls.imageXPos) controls.imageXPos.value = layer.x || 0;
+                if (controls.imageYPos) controls.imageYPos.value = layer.y || 0;
+                if (controls.imageOpacity) controls.imageOpacity.value = layer.opacity || 1;
+                if (controls.blendMode) controls.blendMode.value = layer.blendMode || 'normal';
+                if (controls.imageRotation) controls.imageRotation.value = layer.rotation || 0;
+                if (controls.layerImagePreview && layer.imageData) {
+                    controls.layerImagePreview.src = layer.imageData;
+                }
+                
+                // Attach image-specific events
+                attachImageLayerEvents();
+            }
             
             // Update layer list to show active layer
             updateLayerList();
             
+            // Attach events after ensuring elements exist
             attachLayerEvents();
         }
-        
+
+        // Add these functions to handle image layer properties
+        function attachImageLayerEvents() {
+            if (!activeLayer || activeLayer.type !== 'image') return;
+            
+            const controls = {
+                imageWidth: document.getElementById('imageWidth'),
+                imageHeight: document.getElementById('imageHeight'),
+                imageWidthSlider: document.getElementById('imageWidthSlider'),
+                imageHeightSlider: document.getElementById('imageHeightSlider'),
+                imageXPos: document.getElementById('imageXPos'),
+                imageYPos: document.getElementById('imageYPos'),
+                imageXSlider: document.getElementById('imageXSlider'),
+                imageYSlider: document.getElementById('imageYSlider'),
+                imageOpacity: document.getElementById('imageOpacity'),
+                imageRotation: document.getElementById('imageRotation'),
+                blendMode: document.getElementById('blendMode'),
+                imageLayerName: document.getElementById('imageLayerName')
+            };
+
+            const update = () => {
+                if (!activeLayer) return;
+                
+                // Update layer properties
+                activeLayer.width = parseInt(controls.imageWidth.value);
+                activeLayer.height = parseInt(controls.imageHeight.value);
+                activeLayer.x = parseInt(controls.imageXPos.value);
+                activeLayer.y = parseInt(controls.imageYPos.value);
+                activeLayer.opacity = parseFloat(controls.imageOpacity.value);
+                activeLayer.rotation = parseInt(controls.imageRotation.value);
+                activeLayer.blendMode = controls.blendMode.value;
+                activeLayer.name = controls.imageLayerName.value;
+
+                // Update display values
+                document.getElementById('opacityValue').textContent = `${Math.round(activeLayer.opacity * 100)}%`;
+                document.getElementById('rotationValue').textContent = `${activeLayer.rotation}°`;
+
+                // Sync sliders with number inputs
+                if (controls.imageWidthSlider) controls.imageWidthSlider.value = controls.imageWidth.value;
+                if (controls.imageHeightSlider) controls.imageHeightSlider.value = controls.imageHeight.value;
+                if (controls.imageXSlider) controls.imageXSlider.value = controls.imageXPos.value;
+                if (controls.imageYSlider) controls.imageYSlider.value = controls.imageYPos.value;
+
+                // Save and render
+                if (currentImage) {
+                    imageLayersMap.set(currentImage, layers);
+                    const currentStyle = window.imageStyleMap && window.imageStyleMap.get(currentImage);
+                    if (currentStyle) {
+                        styleLayersMap.set(currentStyle, JSON.parse(JSON.stringify(layers)));
+                    }
+                }
+                
+                updateLayerList();
+                renderCanvas();
+            };
+
+            // Attach event listeners for sliders
+            const syncSliders = {
+                imageWidthSlider: 'imageWidth',
+                imageHeightSlider: 'imageHeight',
+                imageXSlider: 'imageXPos',
+                imageYSlider: 'imageYPos'
+            };
+
+            Object.entries(syncSliders).forEach(([sliderId, inputId]) => {
+                const slider = controls[sliderId];
+                const input = controls[inputId];
+                
+                if (slider && input) {
+                    // Sync initial values
+                    slider.value = input.value;
+                    
+                    // Update input when slider changes
+                    slider.addEventListener('input', (e) => {
+                        input.value = e.target.value;
+                        update();
+                    });
+                    
+                    // Update slider when input changes
+                    input.addEventListener('input', (e) => {
+                        slider.value = e.target.value;
+                        update();
+                    });
+                }
+            });
+
+            // Attach event listeners to remaining controls
+            ['imageOpacity', 'imageRotation', 'blendMode', 'imageLayerName'].forEach(controlId => {
+                const control = controls[controlId];
+                if (control) {
+                    control.addEventListener('input', update);
+                }
+            });
+
+            // Initialize aspect ratio lock with the actual image aspect ratio
+            let maintainAspect = true;
+            // Get the actual image from cache to calculate real aspect ratio
+            const layerImg = imageLayerCache.get(activeLayer.id);
+            let aspectRatio = layerImg ? layerImg.width / layerImg.height : activeLayer.width / activeLayer.height;
+            
+            const aspectLockBtn = document.getElementById('maintainAspectRatio');
+            if (aspectLockBtn) {
+                aspectLockBtn.addEventListener('click', () => {
+                    maintainAspect = !maintainAspect;
+                    aspectLockBtn.textContent = maintainAspect ? '🔒' : '🔓';
+                    // Update aspect ratio from the cached image
+                    const img = imageLayerCache.get(activeLayer.id);
+                    if (img) {
+                        aspectRatio = img.width / img.height;
+                    }
+                });
+
+                // Handle width changes (both slider and input)
+                [controls.imageWidth, controls.imageWidthSlider].forEach(control => {
+                    if (control) {
+                        control.addEventListener('input', (e) => {
+                            const newWidth = parseInt(e.target.value);
+                            if (maintainAspect) {
+                                const newHeight = Math.round(newWidth / aspectRatio);
+                                // Update both height input and slider
+                                controls.imageHeight.value = newHeight;
+                                controls.imageHeightSlider.value = newHeight;
+                                activeLayer.height = newHeight;
+                            }
+                            // Sync width controls
+                            controls.imageWidth.value = newWidth;
+                            controls.imageWidthSlider.value = newWidth;
+                            activeLayer.width = newWidth;
+                            update();
+                        });
+                    }
+                });
+
+                // Handle height changes (both slider and input)
+                [controls.imageHeight, controls.imageHeightSlider].forEach(control => {
+                    if (control) {
+                        control.addEventListener('input', (e) => {
+                            const newHeight = parseInt(e.target.value);
+                            if (maintainAspect) {
+                                const newWidth = Math.round(newHeight * aspectRatio);
+                                // Update both width input and slider
+                                controls.imageWidth.value = newWidth;
+                                controls.imageWidthSlider.value = newWidth;
+                                activeLayer.width = newWidth;
+                            }
+                            // Sync height controls
+                            controls.imageHeight.value = newHeight;
+                            controls.imageHeightSlider.value = newHeight;
+                            activeLayer.height = newHeight;
+                            update();
+                        });
+                    }
+                });
+            }
+
+            // Add aspect ratio update to the main update function
+            const originalUpdate = update;
+            update = () => {
+                originalUpdate();
+                if (maintainAspect) {
+                    aspectRatio = activeLayer.width / activeLayer.height;
+                }
+            };
+        }
+
         function attachLayerEvents() {
             if (!activeLayer) return;
             
@@ -650,32 +1178,53 @@
             
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             
-            // Draw text layers
+            // Draw all layers
             layers.forEach(layer => {
                 if (!layer) return;
                 
                 ctx.save();
-                ctx.globalAlpha = layer.opacity;
-                ctx.font = `${layer.fontSize}px ${layer.font}`;
-                ctx.fillStyle = layer.color;
                 
-                // Add shadow if enabled
-                if (layer.shadow) {
-                    ctx.shadowColor = layer.shadowColor;
-                    ctx.shadowBlur = layer.shadowBlur;
-                    ctx.shadowOffsetX = 2;
-                    ctx.shadowOffsetY = 2;
+                if (layer.type === 'image') {
+                    const layerImg = imageLayerCache.get(layer.id);
+                    if (layerImg) {
+                        ctx.globalAlpha = layer.opacity || 1;
+                        ctx.globalCompositeOperation = layer.blendMode || 'normal';
+                        
+                        // Handle rotation
+                        if (layer.rotation) {
+                            // Move to center of image
+                            ctx.translate(layer.x + layer.width/2, layer.y + layer.height/2);
+                            // Rotate
+                            ctx.rotate(layer.rotation * Math.PI / 180);
+                            // Move back
+                            ctx.translate(-(layer.x + layer.width/2), -(layer.y + layer.height/2));
+                        }
+                        
+                        ctx.drawImage(layerImg, layer.x, layer.y, layer.width, layer.height);
+                    }
+                } else if (layer.type === 'text') {
+                    ctx.font = `${layer.fontSize}px ${layer.font}`;
+                    ctx.fillStyle = layer.color;
+                    
+                    // Add shadow if enabled
+                    if (layer.shadow) {
+                        ctx.shadowColor = layer.shadowColor;
+                        ctx.shadowBlur = layer.shadowBlur;
+                        ctx.shadowOffsetX = 2;
+                        ctx.shadowOffsetY = 2;
+                    }
+                    
+                    // Add border if enabled
+                    if (layer.border) {
+                        ctx.strokeStyle = layer.borderColor;
+                        ctx.lineWidth = 2;
+                        ctx.strokeText(layer.text, layer.x, layer.y);
+                    }
+                    
+                    // Draw text
+                    ctx.fillText(layer.text, layer.x, layer.y);
                 }
                 
-                // Add border if enabled
-                if (layer.border) {
-                    ctx.strokeStyle = layer.borderColor;
-                    ctx.lineWidth = 2;
-                    ctx.strokeText(layer.text, layer.x, layer.y);
-                }
-                
-                // Draw text
-                ctx.fillText(layer.text, layer.x, layer.y);
                 ctx.restore();
             });
         }
@@ -764,4 +1313,4 @@
         window.imageStyleMap = window.imageStyleMap || new Map();
     </script>
 </body>
-</html> 
+</html>
