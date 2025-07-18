@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Header</h1>
+    </div>
+    <div class="content">
+      <h1>Content</h1>
+    </div>
+  </div>
+  <script>
+  fetch('http://localhost:3000/api/data')
+    .then(response => response.json())
+    .then(data => {
+      const contentDiv = document.querySelector('.content');
+      contentDiv.innerHTML = '<h1>Content</h1>'; // Reset
+
+      if (!data.length) {
+        contentDiv.innerHTML += '<p>No data found.</p>';
+        return;
+      }
+
+      const list = document.createElement('ul');
+      data.forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <strong>${item.charID}</strong><br>
+          ${item.prompt ? `<em>${item.prompt}</em><br>` : ''}
+          ${item.front_link ? `<img src="${item.front_link}" alt="Front" style="max-width:100px;">` : ''}
+          ${item.back_link ? `<img src="${item.back_link}" alt="Back" style="max-width:100px;">` : ''}
+          ${item.side_link ? `<img src="${item.side_link}" alt="Side" style="max-width:100px;">` : ''}
+          <hr>
+        `;
+        list.appendChild(li);
+      });
+      contentDiv.appendChild(list);
+    });
+  </script>
+</body>
+</html>

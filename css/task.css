@@ -1,0 +1,341 @@
+:root {
+    --primary-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    --secondary-bg-dark: #070b14;
+    --secondary-bg: #0e1629;
+    --accent-color: #3b82f6;
+    --text-color: #e2e8f0;
+    --border-color: #1c2431;
+}
+
+.task-manager-section {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    color: var(--text-color);
+}
+
+.role-selection {
+    border-radius: 15px;
+    padding: 20px 20px;
+    margin: 20px;
+}
+
+.role-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.role-card {
+    background-color: var(--secondary-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.role-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    border-color: var(--accent-color);
+}
+
+.role-card.selected {
+    border-color: var(--accent-color);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.role-icon {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    color: var(--accent-color);
+}
+
+.role-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--text-color);
+}
+
+.role-description {
+    font-size: 0.9em;
+    color: #94a3b8;
+}
+
+.application-form {
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px;
+    display: none;
+}
+
+.application-form.active {
+    display: block;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label, .portfolio-section label, .assignment-requirements h3 {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    font-size: 1em;
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+}
+
+.form-control:focus {
+    border-color: var(--accent-color);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.portfolio-section {
+    margin-top: 20px;
+}
+
+.portfolio-upload {
+    border: 2px dashed var(--border-color);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: var(--secondary-bg);
+}
+
+.portfolio-upload:hover {
+    border-color: var(--accent-color);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.upload-icon {
+    font-size: 2em;
+    margin-bottom: 10px;
+    color: var(--accent-color);
+}
+
+.assignment-section {
+    margin: 20px;
+    padding: 20px;
+    border-radius: 15px;
+    display: none;
+}
+
+.assignment-section.active {
+    display: block;
+}
+
+.assignment-header {
+    margin-bottom: 20px;
+}
+
+.assignment-title {
+    font-size: 1.5em;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.assignment-description {
+    color: #94a3b8;
+    margin-bottom: 20px;
+}
+
+.assignment-requirements {
+    background-color: var(--secondary-bg);
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.requirement-list {
+    list-style-type: none;
+    padding: 0;
+    color: var(--text-color);
+}
+
+.requirement-list li {
+    margin-bottom: 10px;
+    padding-left: 25px;
+    position: relative;
+}
+
+.requirement-list li:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--accent-color);
+}
+
+.assignment-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.submit-btn {
+    background: var(--accent-color);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 15px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+}
+
+.submit-btn:disabled {
+    background: #64748b;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Submission Section Styles */
+.submission-section {
+    margin: 20px;
+    padding: 20px;
+    border-radius: 15px;
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+}
+
+.submission-section h2 {
+    color: var(--text-color);
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+.submission-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.submission-item {
+    background-color: var(--secondary-bg-dark);
+    padding: 15px;
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.submission-item label {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.file-upload {
+    border: 2px dashed var(--border-color);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: var(--secondary-bg);
+}
+
+.file-upload:hover {
+    border-color: var(--accent-color);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.file-upload p {
+    margin: 10px 0 0;
+    color: #94a3b8;
+    font-size: 0.9em;
+}
+
+.file-size-info {
+    text-align: center;
+    color: #94a3b8;
+    margin: 20px 0;
+    font-size: 0.9em;
+}
+
+/* Scrollbar styling */
+.task-manager-section::-webkit-scrollbar {
+    width: 8px;
+}
+
+.task-manager-section::-webkit-scrollbar-track {
+    background-color: var(--secondary-bg);
+}
+
+.task-manager-section::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 15px;
+}
+
+.task-manager-section::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-color);
+}
+
+#internshipForm{
+    margin-top: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 850px) {
+    .role-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .submission-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .assignment-section {
+        padding: 15px;
+        margin: 0;
+        margin-bottom: 10px;
+    }
+
+    .application-form {
+        padding: 15px;
+        margin: 0;
+        margin-bottom: 10px;
+    }
+
+    .role-selection {
+        margin: 0;
+        margin-bottom: 10px;
+    }
+
+    .submission-section {
+        margin: 0;
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .role-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .submit-btn {
+        width: 100%;
+    }
+}

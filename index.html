@@ -1,54 +1,354 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cart AI</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Card Tech</title>     
+    <link rel="icon" href="assets/card_casa_white_logo.png" type="image/png">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/generation.css">
+    <link rel="stylesheet" href="css/post-style.css">
+    <link rel="stylesheet" href="css/task.css">
+    <link rel="stylesheet" href="css/character.css">
     <meta name="description" content="AI-powered image generation using Gemini API">
 </head>
 <body>
     <div class="layout-container">
+        <!-- Left Sidebar -->
+        <div class="left-sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <img src="assets/card_casa_white_logo.png" alt="Cart AI Logo" class="logo">
+                    <div class="title-text">
+                        <span class="gemini-text">CARD CASA</span>
+                        <span class="powered-by">Powered by Gemini</span>
+                    </div>
+                </div>
+                <div class="close-sidebar">×</div>
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-nav">
+                    <div class="nav-item active" data-section="image">
+                        <span class="nav-icon">🖼️</span>
+                        <span class="nav-text">Image</span>
+                    </div>
+                    <div class="nav-item" data-section="email">
+                        <span class="nav-icon">📧</span>
+                        <span class="nav-text">Email</span>
+                    </div>
+                    <div class="nav-item" data-section="post">
+                        <span class="nav-icon">📝</span>
+                        <span class="nav-text">Post</span>
+                    </div>
+                    <div class="nav-item" data-section="task">
+                        <span class="nav-icon">✓</span>
+                        <span class="nav-text">Task Manager</span>
+                    </div>
+                    <div class="nav-item" data-section="characters">
+                        <span class="nav-icon">🧑‍🎤</span>
+                        <span class="nav-text">Characters</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main container -->
         <div class="main-container">
-            <div class="workspace">
-                <div class="header">
-                    <div class="logo-container">
+            <div class="header" id="header">
+                <div class="main-logo-container" id="main-container-logo">
+                    <!-- Logo only container for mobile -->
+                    <div class="mobile-logo">
                         <img src="assets/card_casa_white_logo.png" alt="Cart AI Logo" class="logo">
+                    </div>
+                    <!-- Text container (hidden on mobile) -->
+                    <div class="header-text">
                         <div class="title-text">
                             <span class="gemini-text">CARD CASA</span>
                             <span class="powered-by">Powered by Gemini</span>
                         </div>
                     </div>
-                    <div class="hamburger-menu">
-                        <div class="bar"></div>
-                        <div class="bar"></div>
-                        <div class="bar"></div>
+                </div>
+                <div class="hamburger-menu">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </div>
+
+            <!-- Image Section -->
+            <div id="imageSection" class="section-content">
+                <div class="workspace">
+                    <div class="main-content">
+                        <div class="image-details">
+                            <div class="details-header">
+                                <h3>Generation Settings</h3>
+                                <button id="toggleDetails" class="toggle-details collapsed" aria-label="Toggle details">
+                                    <span class="toggle-icon">▼</span>
+                                </button>
+                            </div>
+                            
+                            <div class="details-content">
+                                <div class="generation-type">
+                                    <label class="type-label">Generation Type</label>
+                                    <div class="type-select-wrapper">
+                                        <select id="generationType" class="type-select">
+                                            <option value="none">Default</option>
+                                            <option value="character">Character Generation</option>
+                                            <option value="accessory">Accessory Generation</option>
+                                        </select>
+                                        <span class="select-arrow">▼</span>
+                                    </div>
+                                </div>
+
+                                <div id="characterOptions" class="sub-options">
+                                    <div class="options-grid">
+                                        <div class="option-group">
+                                            <label class="option-label">Character Type</label>
+                                            <div class="select-wrapper">
+                                                <select id="characterType" class="option-select">
+                                                    <option value="Random">Random</option>
+                                                    <option value="humanoid">Humanoid</option>
+                                                    <option value="animal">Animal</option>
+                                                    <option value="fantasy">Fantasy</option>
+                                                    <option value="robot">Robot</option>
+                                                    <option value="alien">Alien</option>
+                                                    <option value="monster">Monster</option>
+                                                    <option value="mythical">Mythical</option>
+                                                    <option value="hybrid">Hybrid</option>
+                                                    <option value="undead">Undead</option>
+                                                </select>
+                                                <span class="select-arrow">▼</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="option-group">
+                                            <label class="option-label">Character view</label>
+                                            <div class="select-wrapper">
+                                                <select id="characterSide" class="option-select">
+                                                    <option value="Random Pose">Random</option>
+                                                    <option value="Front">Front</option>
+                                                    <option value="Back">Back</option>
+                                                    <option value="Side">Side</option>
+                                                    <option value="Three Quarter">Three Quarter</option>
+                                                    <option value="Dynamic Pose">Dynamic Pose</option>
+                                                    <option value="Action Pose">Action Pose</option>
+                                                    <option value="Flying Pose">Flying Pose</option>
+                                                    <option value="Sitting Pose">Sitting Pose</option>
+                                                    <option value="Running Pose">Running Pose</option>
+                                                </select>
+                                                <span class="select-arrow">▼</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="option-group">
+                                            <label class="option-label">Species</label>
+                                            <div class="select-wrapper">
+                                                <select id="characterSpecies" class="option-select">
+                                                    <option value="Random">Random</option>
+                                                    <option value="human">Human</option>
+                                                    <option value="elf">Elf</option>
+                                                    <option value="dwarf">Dwarf</option>
+                                                    <option value="orc">Orc</option>
+                                                    <option value="dragon">Dragon</option>
+                                                    <option value="fairy">Fairy</option>
+                                                    <option value="vampire">Vampire</option>
+                                                    <option value="werewolf">Werewolf</option>
+                                                    <option value="mermaid">Mermaid</option>
+                                                    <option value="centaur">Centaur</option>
+                                                    <option value="minotaur">Minotaur</option>
+                                                    <option value="phoenix">Phoenix</option>
+                                                    <option value="griffin">Griffin</option>
+                                                    <option value="unicorn">Unicorn</option>
+                                                    <option value="pegasus">Pegasus</option>
+                                                </select>
+                                                <span class="select-arrow">▼</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="option-group">
+                                            <label class="option-label">Powers</label>
+                                            <div class="select-wrapper">
+                                                <select id="characterPowers" class="option-select">
+                                                    <option value="Random">Random</option>
+                                                    <option value="elemental">Elemental Control</option>
+                                                    <option value="teleportation">Teleportation</option>
+                                                    <option value="shapeshifting">Shapeshifting</option>
+                                                    <option value="invisibility">Invisibility</option>
+                                                    <option value="mind control">Mind Control</option>
+                                                    <option value="healing">Healing</option>
+                                                    <option value="necromancy">Necromancy</option>
+                                                    <option value="illusion">Illusion</option>
+                                                    <option value="time manipulation">Time Manipulation</option>
+                                                    <option value="super strength">Super Strength</option>
+                                                    <option value="flight">Flight</option>
+                                                    <option value="telekinesis">Telekinesis</option>
+                                                    <option value="energy projection">Energy Projection</option>
+                                                    <option value="animal control">Animal Control</option>
+                                                    <option value="weather control">Weather Control</option>
+                                                </select>
+                                                <span class="select-arrow">▼</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="option-group">
+                                            <label class="option-label">Theme</label>
+                                            <div class="select-wrapper">
+                                                <select id="characterTheme" class="option-select">
+                                                    <option value="Random">Random</option>
+                                                    <option value="medieval">Medieval</option>
+                                                    <option value="modern">Modern</option>
+                                                    <option value="futuristic">Futuristic</option>
+                                                    <option value="steampunk">Steampunk</option>
+                                                    <option value="cyberpunk">Cyberpunk</option>
+                                                    <option value="fantasy">Fantasy</option>
+                                                    <option value="horror">Horror</option>
+                                                    <option value="comedy">Comedy</option>
+                                                    <option value="noir">Noir</option>
+                                                    <option value="western">Western</option>
+                                                    <option value="post apocalyptic">Post-Apocalyptic</option>
+                                                    <option value="sci fi">Sci-Fi</option>
+                                                    <option value="mythological">Mythological</option>
+                                                    <option value="gothic">Gothic</option>
+                                                    <option value="vintage">Vintage</option>
+                                                </select>
+                                                <span class="select-arrow">▼</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="reference-section">
+                                        <div class="character-description">
+                                            <label class="description-label">Character Negative</label>
+                                            <div class="textarea-wrapper">
+                                                <textarea id="characterDescription" class="description-textarea" 
+                                                    placeholder="Describe your character in detail..."></textarea>
+                                                <div class="textarea-footer">
+                                                    <span class="char-count">0/500</span>
+                                                    <span class="hint">Optional</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="accessoryOptions" class="sub-options">
+                                    <div class="options-grid">
+                                        <div class="option-group">
+                                            <label class="option-label">Accessory Type</label>
+                                            <div class="select-wrapper">
+                                                <select id="accessoryType" class="option-select">
+                                                    <option value="">Select Type</option>
+                                                    <option value="jewelry">Jewelry</option>
+                                                    <option value="clothing">Clothing</option>
+                                                    <option value="weapon">Weapon</option>
+                                                    <option value="magical">Magical Item</option>
+                                                </select>
+                                                <span class="select-arrow">▼</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="option-group">
+                                            <label class="option-label">Style</label>
+                                            <div class="select-wrapper">
+                                                <select id="accessoryStyle" class="option-select">
+                                                    <option value="">Select Style</option>
+                                                </select>
+                                                <span class="select-arrow">▼</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="option-group">
+                                            <label class="option-label">Material</label>
+                                            <div class="select-wrapper">
+                                                <select id="accessoryMaterial" class="option-select">
+                                                    <option value="">Select Material</option>
+                                                </select>
+                                                <span class="select-arrow">▼</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="results" class="output">
+                            <div class="image-grid"></div>
+                        </div>
+                    </div>
+
+                    <div class="input-section">
+                        <div id="multipleImagePreview" class="multiple-image-preview">
+                            <!-- Multiple images will be shown here -->
+                        </div>
+                        <div class="input-container">
+                            <div class="image-upload-container">
+                                <input type="file" id="imageInput" accept="image/*" multiple>
+                                <div class="upload-circle">
+                                    <div class="plus-icon">+</div>
+                                </div>
+                            </div>
+                            <div class="text-input-container">
+                                <textarea id="prompt" placeholder="Enter your prompt..."></textarea>
+                                <div class="input-actions">
+                                    <button id="generateBtn"><span>Generate</span></button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="main-content">
-                    <div id="results" class="output">
-                        <div class="image-grid"></div>
+            </div>
+
+            <!-- Post Section -->
+            <div id="postSection" class="section-content" style="display: none;">
+                    
+                <!-- New Image Upload Section -->
+                <div class="post-image-section">
+                    <div class="image-upload-area">
+                        <input type="file" id="postImageInput" accept="*/*" multiple>
+                        <div class="upload-placeholder">
+                            <p>Drop files here or click to upload</p>
+                            <span class="upload-hint">Supports: Any file type (max 5MB)</span>
+                        </div>
+                    </div>
+                    <div class="file-preview-grid" id="postFilePreviews">
+                        <!-- File previews will be inserted here dynamically -->
                     </div>
                 </div>
 
-                <div class="input-section">
-                    <div id="multipleImagePreview" class="multiple-image-preview">
-                        <!-- Multiple images will be shown here -->
-                    </div>
-                    <div class="input-container">
-                        <div class="image-upload-container">
-                            <input type="file" id="imageInput" accept="image/*" multiple>
-                            <div class="upload-circle">
-                                <div class="plus-icon">+</div>
+            </div>
+
+            <!-- Task Section -->
+            <div id="taskSection" class="section-content" style="display: none;">
+                <!-- Content will be dynamically added by task.js -->
+            </div>
+
+            <!-- Characters Section -->
+            <div id="charactersSection" class="section-content" style="display: none;">
+                <div class="workspace">
+                    <div class="main-content">
+                        <h2>Characters</h2>
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                            <input type="text" id="characterSearch" class="character-search-input" placeholder="Search characters by name or prompt...">
+                            <div class="character-dropdown-row" style="display: flex; gap: 10px; margin-top: 4px;">
+                                <select id="characterSortDropdown" class="character-sort-dropdown" style="min-width: 120px;">
+                                    <option value="">Sort by...</option>
+                                    <option value="alpha_az">Alphabetical (A–Z)</option>
+                                    <option value="alpha_za">Alphabetical (Z–A)</option>
+                                    <option value="date_new">Newest First</option>
+                                    <option value="date_old">Oldest First</option>
+                                    <option value="date_updated">Most Recently Updated</option>
+                                </select>
+                                <select id="characterFilterDropdown" class="character-filter-dropdown" style="min-width: 120px;">
+                                    <option value="all">All Dates</option>
+                                    <option value="today">Today</option>
+                                    <option value="7d">Past 7 Days</option>
+                                    <option value="30d">Past 30 Days</option>
+                                    <option value="1y">Past Year</option>
+                                    <option value="custom">Custom Range</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="text-input-container">
-                            <textarea id="prompt" placeholder="Enter your prompt..."></textarea>
-                            <div class="input-actions">
-                                <button id="generateBtn"><span>Generate</span></button>
-                            </div>
+                        <div class="character-list" id="characterList">
+                            <!-- Characters will be loaded here -->
                         </div>
                     </div>
                 </div>
@@ -62,6 +362,17 @@
                 <div class="close-sidebar">×</div>
             </div>
             <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <h4>Magic Prompt <span class="tooltip-icon" title="Enhances your prompt using AI to create better results">ⓘ</span></h4>
+                    <div class="magic-prompt-container">
+                        <label class="switch">
+                            <input type="checkbox" id="magicPromptToggle">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="magic-prompt-label">Magic Prompt</span>
+                    </div>
+                </div>
+
                 <div class="sidebar-section">
                     <h4>Art Style</h4>
                     <div class="search-container">
@@ -141,20 +452,20 @@
                 <div class="sidebar-section">
                     <h4>Temperature <span class="tooltip-icon" title="Controls the creativity/randomness of the output. Higher values produce more varied results.">ⓘ</span></h4>
                     <div class="temperature-container">
-                        <input type="range" id="temperatureSlider" min="0" max="2" step="0.1" value="0.4">
-                        <div class="temperature-labels">
-                            <span>0</span>
-                            <span id="temperatureValue">0.4</span>
-                            <span>2</span>
+                        <div class="temperature-track">
+                            <input type="range" id="temperatureSlider" min="0" max="2" step="0.1" value="0.4">
+                            <div class="temperature-progress" id="temperatureProgress"></div>
                         </div>
-                        <div class="temperature-descriptions">
-                            <span>Stable</span>
-                            <span>Creative</span>
+                        <div class="temperature-value">
+                            <span id="temperatureValue">0.4</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay"></div>
     </div>
 
     <!-- Image Preview Modal -->
@@ -190,66 +501,206 @@
                     <div class="tabs-container">
                         <button id="propertiesTab" class="tab-btn active" onclick="setupTabSwitching()">Properties</button>
                         <button id="layersTab" class="tab-btn" onclick="setupTabSwitching()">Layers</button>
+                        <button id="templatesTab" class="tab-btn" onclick="setupTabSwitching()">Templates</button>
                     </div>
-                    <div class="text-editor-panel"> 
+                    <div class="text-editor-panel">
+                        <div id="templatesContent" class="tab-content">
+                            <div class="templates-grid">
+                                <div class="template-item" data-template="birthday">
+                                    <div class="template-preview">
+                                        <img src="assets/templates/birthday-preview.png" alt="Birthday Template">
+                                    </div>
+                                    <div class="template-info">
+                                        <h4>Birthday Card</h4>
+                                        <p>Add festive text and decorations</p>
+                                    </div>
+                                </div>
+                                <div class="template-item" data-template="casa_template_1">
+                                    <div class="template-preview">
+                                        <img src="assets/templates/casa_template_1-preview.png" alt="Top Left Logo Template">
+                                    </div>
+                                    <div class="template-info">
+                                        <h4>Top Left Logo</h4>
+                                        <p>Logo on top-left, website bottom-left, socials bottom-right</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="template-item" data-template="casa_template_2">
+                                    <div class="template-preview">
+                                        <img src="assets/templates/casa_template_2-preview.png" alt="Centered Info Template">
+                                    </div>
+                                    <div class="template-info">
+                                        <h4>Centered Info</h4>
+                                        <p>Logo centered at top, website and socials centered below</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="template-item" data-template="casa_template_3">
+                                    <div class="template-preview">
+                                        <img src="assets/templates/casa_template_3-preview.png" alt="Vertical Right Bar">
+                                    </div>
+                                    <div class="template-info">
+                                        <h4>Right Bar</h4>
+                                        <p>Vertical layout on right with logo and social handles</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="template-item" data-template="casa_template_4">
+                                    <div class="template-preview">
+                                        <img src="assets/templates/casa_template_4-preview.png" alt="Diagonal Spread">
+                                    </div>
+                                    <div class="template-info">
+                                        <h4>Diagonal Spread</h4>
+                                        <p>Diagonal alignment: logo top-left, socials mid, site bottom-right</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="template-item" data-template="casa_template_5">
+                                    <div class="template-preview">
+                                        <img src="assets/templates/casa_template_5-preview.png" alt="Banner Style">
+                                    </div>
+                                    <div class="template-info">
+                                        <h4>Banner Style</h4>
+                                        <p>Full-width banner with logo left, socials center, site right</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="template-item" data-template="casa_template_6">
+                                    <div class="template-preview">
+                                        <img src="assets/templates/casa_template_6-preview.png" alt="Minimalist Badge">
+                                    </div>
+                                    <div class="template-info">
+                                        <h4>Minimalist Badge</h4>
+                                        <p>Small badge at corner with logo and handles, subtle style</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="template-item" data-template="casa_template_7">
+                                    <div class="template-preview">
+                                        <img src="assets/templates/casa_template_7-preview.png" alt="Card Centered Overlay">
+                                    </div>
+                                    <div class="template-info">
+                                        <h4>Card Overlay</h4>
+                                        <p>Overlay box in center with all info neatly stacked</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="template-item" data-template="announcement">
+                                    <div class="template-preview">
+                                        <img src="assets/templates/announcement-preview.png" alt="Announcement Template">
+                                    </div>
+                                    <div class="template-info">
+                                        <h4>Announcement</h4>
+                                        <p>Professional announcement layout</p>
+                                    </div>
+                                </div>
+                                <div class="template-item" data-template="quote">
+                                    <div class="template-preview">
+                                        <img src="assets/templates/quote-preview.png" alt="Quote Template">
+                                    </div>
+                                    <div class="template-info">
+                                        <h4>Quote Card</h4>
+                                        <p>Elegant quote presentation</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div id="propertiesContent" class="tab-content active">
                             <div class="layer-editor" id="layerEditor">
                                 <h2>Edit Text</h2>
                                 <hr>
+
                                 <div class="edit-group">
                                     <label>Text</label>
                                     <input type="text" id="textInput" placeholder="Enter text...">
                                 </div>
-                                
+
                                 <div class="edit-group">
-                                    <label>Font</label>
+                                    <label>Font Family</label>
                                     <select id="fontFamily">
-                                        <option>Arial</option>
-                                        <option>Verdana</option>
-                                        <option>Impact</option>
-                                        <option>Georgia</option>
-                                        <option>Courier New</option>
-                                        <option>Comic Sans MS</option>
-                                        <option>Trebuchet MS</option>
+                                        <option value="Arial">Arial</option>
+                                        <option value="Helvetica">Helvetica</option>
+                                        <option value="Times New Roman">Times New Roman</option>
+                                        <option value="Georgia">Georgia</option>
+                                        <option value="Impact">Impact</option>
                                     </select>
                                 </div>
-                                
+
                                 <div class="edit-group">
-                                    <label>Size</label>
-                                    <input type="number" id="fontSize" min="10" max="200" step="1" value="30">
+                                    <label>Font Size</label>
+                                    <input type="number" id="fontSize" min="8" max="200" value="30">
                                 </div>
-                                
+
+                                <div class="edit-group">
+                                    <label>Font Weight</label>
+                                    <select id="fontWeight">
+                                        <option value="normal">Normal</option>
+                                        <option value="bold">Bold</option>
+                                    </select>
+                                </div>
+
+                                <div class="edit-group">
+                                    <label>Font Style</label>
+                                    <select id="fontStyle">
+                                        <option value="normal">Normal</option>
+                                        <option value="italic">Italic</option>
+                                    </select>
+                                </div>
+
+                                <div class="edit-group">
+                                    <label>Text Color</label>
+                                    <input type="color" id="textColor" value="#ffffff">
+                                </div>
+
+                                <div class="edit-group">
+                                    <label>Opacity</label>
+                                    <input type="range" id="opacity" min="0" max="1" step="0.1" value="1">
+                                </div>
+
+                                <div class="edit-group">
+                                    <label><input type="checkbox" id="border"> Border</label>
+                                    <input type="color" id="borderColor" value="#000000">
+                                    <input type="number" id="borderWidth" min="1" max="20" value="1">
+                                    <select id="borderStyle">
+                                        <option value="solid">Solid</option>
+                                        <option value="dashed">Dashed</option>
+                                    </select>
+                                    <select id="borderPosition">
+                                        <option value="all">All Sides</option>
+                                        <option value="top">Top</option>
+                                        <option value="right">Right</option>
+                                        <option value="bottom">Bottom</option>
+                                        <option value="left">Left</option>
+                                    </select>
+                                    <select id="borderPlacement">
+                                        <option value="outside">Outside</option>
+                                        <option value="inside">Inside</option>
+                                    </select>
+                                </div>
+
+                                <div class="edit-group">
+                                    <label><input type="checkbox" id="shadow"> Shadow</label>
+                                    <input type="color" id="shadowColor" value="#000000">
+                                    <input type="range" id="shadowBlur" min="0" max="50" value="5">
+                                    <input type="number" id="shadowOffsetX" placeholder="Offset X" value="2">
+                                    <input type="number" id="shadowOffsetY" placeholder="Offset Y" value="2">
+                                </div>
+
+                                <div class="edit-group">
+                                    <label>Rotation</label>
+                                    <input type="range" id="textRotation" min="-180" max="180" value="0">
+                                </div>
+
                                 <div class="edit-group">
                                     <label>Position X</label>
                                     <input type="range" id="xSlider" min="-1000" max="1000" value="100">
                                     <input type="number" id="xPos" min="-1000" max="1000" value="100">
                                 </div>
-                                
+
                                 <div class="edit-group">
                                     <label>Position Y</label>
                                     <input type="range" id="ySlider" min="-1000" max="1000" value="100">
                                     <input type="number" id="yPos" min="-1000" max="1000" value="100">
-                                </div>
-                                
-                                <div class="edit-group">
-                                    <label>Text Color</label>
-                                    <input type="color" id="textColor" value="#ffffff">
-                                </div>
-                                
-                                <div class="edit-group">
-                                    <label>Opacity</label>
-                                    <input type="range" id="opacity" min="0" max="1" step="0.05" value="1">
-                                </div>
-                                
-                                <div class="edit-group">
-                                    <label><input type="checkbox" id="border"> Border</label>
-                                    <input type="color" id="borderColor" value="#000000">
-                                </div>
-                                
-                                <div class="edit-group">
-                                    <label><input type="checkbox" id="shadow"> Shadow</label>
-                                    <input type="color" id="shadowColor" value="#000000">
-                                    <input type="range" id="shadowBlur" min="0" max="30" value="5">
                                 </div>
 
                             </div>
@@ -257,6 +708,7 @@
                             <div class="edit-group image-layer-controls" style="display: none;">
                                 <h2>Edit Image</h2>
                                 <hr>
+
                                 <div class="edit-group">
                                     <label>Layer Name</label>
                                     <input type="text" id="imageLayerName" placeholder="Layer name...">
@@ -266,50 +718,37 @@
                                     <label>Image</label>
                                     <div class="image-preview-container">
                                         <img id="layerImagePreview" alt="Layer image preview">
-                                        <button class="text-btn replace-image-btn" onclick="replaceLayerImage()">
-                                            Replace Image
-                                        </button>
+                                        <button class="text-btn replace-image-btn" onclick="replaceLayerImage()">Replace Image</button>
                                     </div>
                                     <input type="file" id="layerImageInput" accept="image/*" style="display: none;">
                                 </div>
-                                
+
                                 <div class="edit-group">
-                                    <label>Size</label>
-                                    <div class="size-inputs">
-                                        <div class="input-group">
-                                            <span>Width</span>
-                                            <input type="number" id="imageWidth" value="100">
-                                            <input type="range" id="imageWidthSlider" min="10" max="1000" value="100">
-                                        </div>
-                                        <div class="input-group">
-                                            <span>Height</span>
-                                            <input type="number" id="imageHeight" value="100">
-                                            <input type="range" id="imageHeightSlider" min="10" max="1000" value="100">
-                                        </div>
-                                        <button class="text-btn small" id="maintainAspectRatio" title="Lock aspect ratio">🔒</button>
-                                    </div>
+                                    <label>Width & Height</label>
+                                    <input type="number" id="imageWidth" value="100">
+                                    <input type="number" id="imageHeight" value="100">
+                                    <button class="text-btn small" id="maintainAspectRatio" title="Lock aspect ratio">🔒</button>
                                 </div>
-                                
+
                                 <div class="edit-group">
                                     <label>Position</label>
-                                    <div class="position-inputs">
-                                        <div class="input-group">
-                                            <span>X</span>
-                                            <input type="number" id="imageXPos" min="-1000" max="1000" value="100">
-                                            <input type="range" id="imageXSlider" min="-1000" max="1000" value="100">
-                                        </div>
-                                        <div class="input-group">
-                                            <span>Y</span>
-                                            <input type="number" id="imageYPos" min="-1000" max="1000" value="100">
-                                            <input type="range" id="imageYSlider" min="-1000" max="1000" value="100">
-                                        </div>
-                                    </div>
+                                    <input type="number" id="imageXPos" min="-2000" max="2000" value="100">
+                                    <input type="range" id="imageXSlider" min="-2000" max="2000" value="100">
+                                    <input type="number" id="imageYPos" min="-2000" max="2000" value="100">
+                                    <input type="range" id="imageYSlider" min="-2000" max="2000" value="100">
                                 </div>
-                                
+
                                 <div class="edit-group">
                                     <label>Opacity</label>
                                     <input type="range" id="imageOpacity" min="0" max="1" step="0.05" value="1">
                                     <span class="value-display" id="opacityValue">100%</span>
+                                </div>
+
+                                <div class="edit-group">
+                                    <label>Border Radius</label>
+                                    <input type="range" id="imageBorderRadius" min="0" max="200" step="1" value="0">
+                                    <input type="number" id="imageBorderRadiusInput" min="0" max="200" step="1" value="0">
+                                    <span class="value-display" id="radiusValue">0px</span>
                                 </div>
 
                                 <div class="edit-group">
@@ -321,6 +760,8 @@
                                         <option value="overlay">Overlay</option>
                                         <option value="darken">Darken</option>
                                         <option value="lighten">Lighten</option>
+                                        <option value="difference">Difference</option>
+                                        <option value="exclusion">Exclusion</option>
                                     </select>
                                 </div>
 
@@ -329,8 +770,37 @@
                                     <input type="range" id="imageRotation" min="0" max="360" value="0">
                                     <span class="value-display" id="rotationValue">0°</span>
                                 </div>
+
+                                <div class="edit-group">
+                                    <label>Flip</label>
+                                    <button class="text-btn small" onclick="flipImage('horizontal')">Flip Horizontal</button>
+                                    <button class="text-btn small" onclick="flipImage('vertical')">Flip Vertical</button>
+                                </div>
+
+                                <div class="edit-group">
+                                    <label>Border</label>
+                                    <input type="checkbox" id="imageBorder">
+                                    <input type="color" id="imageBorderColor" value="#000000">
+                                    <input type="number" id="imageBorderWidth" min="1" max="20" value="1">
+                                    <select id="imageBorderStyle">
+                                        <option value="solid">Solid</option>
+                                        <option value="dashed">Dashed</option>
+                                    </select>
+                                    <select id="imageBorderPosition">
+                                        <option value="all">All Sides</option>
+                                        <option value="top">Top</option>
+                                        <option value="right">Right</option>
+                                        <option value="bottom">Bottom</option>
+                                        <option value="left">Left</option>
+                                    </select>
+                                    <select id="imageBorderPlacement">
+                                        <option value="outside">Outside</option>
+                                        <option value="inside">Inside</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
+
                         <div id="layersContent" class="tab-content">
                             <div class="text-controls">
                                 <div class="layer-actions">
@@ -340,12 +810,10 @@
                                     </button>
                                     <div class="layer-dropdown">
                                         <div class="dropdown-item" onclick="addTextLayer()">
-                                            <span class="icon">T</span>
-                                            Text Layer
+                                            <span class="icon">T</span> Text Layer
                                         </div>
                                         <div class="dropdown-item" onclick="addImageLayer()">
-                                            <span class="icon">🖼️</span>
-                                            Image Layer
+                                            <span class="icon">🖼️</span> Image Layer
                                         </div>
                                     </div>
                                 </div>
@@ -369,12 +837,22 @@
                     </svg>
                     New
                 </button>
+                <button id="postImage" class="download-btn">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    Post
+                </button>
             </div>
         </div>
     </div>
 
-    <script src="config.js"></script>
-    <script src="script.js"></script>
-    <script src="modal.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/templates.js"></script>
+    <script src="js/post.js"></script>
+    <script src="js/task.js"></script>
+    <script src="js/character.js"></script>
 </body>
 </html>

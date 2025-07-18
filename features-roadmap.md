@@ -1,136 +1,127 @@
 # Card Casa - Features Roadmap
+🧠 Project Overview: AI Image Generation to Instagram Workflow
+🔗 Goal:
+Build a web-based system where a user can:
 
-This document outlines potential features and improvements for the Card Casa image generation platform.
+Enter a text prompt.
 
-## User Management & Content
+Generate an AI image.
 
-### User Authentication & Saved Creations
-- Implement user registration and login system
-- Create personal galleries for saving generated images
-- Add favorites/collections feature for organizing creations
-- Enable direct sharing to social media platforms
-- Implement image history with the ability to revisit and regenerate
+Edit the image in-browser.
 
-### Template System Enhancement
-- Create a template management interface
-- Allow users to save favorite prompts as reusable templates
-- Add categorization for templates (business cards, social media posts, etc.)
-- Enable template sharing between users
-- Implement featured templates section
+Click a button to send that image (with caption) to Instagram (after confirmation).
 
-## Image Generation & Editing
+🧱 System Components
+1. Frontend (Website Interface)
+User Flow:
 
-### Advanced Image Editing
-- Integrate basic image editing tools (crop, resize, filters)
-- Add text overlay options with customizable fonts and styles
-- Implement layer management for complex compositions
-- Add image masking capabilities for selective generation
-- Include color palette selection and manipulation
+Input prompt field (text box)
 
-### Image Quality & Options
-- Support higher resolution output options
-- Implement batch processing for multiple images
-- Add more aspect ratio options and custom dimensions
-- Support different file formats (PNG, JPG, WebP, etc.)
-- Include watermarking options
+"Generate" button
 
-### Prompt Enhancement & AI Assistance
-- Add an AI prompt helper to suggest improvements
-- Create preset prompt categories (landscape, portrait, product)
-- Implement prompt history to easily reuse successful prompts
-- Build a community prompt library with popular examples
-- Add prompt templates for specific use cases
+Display area for the generated image
 
-## System & Performance
+In-browser image editor (e.g., Fabric.js or Toast UI Editor)
 
-### Batch Processing & Queue System
-- Allow scheduling of multiple image generation jobs
-- Implement a queue system for higher-volume processing
-- Add email notifications when batch jobs are complete
-- Create a job status dashboard for tracking progress
-- Enable priority processing options
+"Post to Instagram" button (with confirmation dialog)
 
-### Performance Improvements
-- Implement image caching for faster loading
-- Add progressive loading for generated images
-- Optimize image compression for faster uploads/downloads
-- Implement WebSocket for real-time updates
-- Add offline support for basic functions
+Frontend Tasks:
 
-### Context Management Enhancement
-- Develop a more sophisticated context history system
-- Allow exporting/importing of context settings
-- Create preset contexts for different image styles
-- Build context chaining for multi-step generation
-- Implement visual context builder
+Send the prompt to backend or API for image generation
 
-## Business & Integration
+Allow image editing in the browser
 
-### Monetization Options
-- Implement tiered subscription plans with different generation quotas
-- Add premium templates and styles as paid options
-- Create a marketplace for users to sell their templates
-- Offer priority processing for premium users
-- Include enterprise options for high-volume customers
+After editing, send the final image and caption to the backend via HTTP POST
 
-### Integration & Export Options
-- Add direct integration with design tools (Figma, Canva)
-- Support more export formats (PNG, JPG, SVG, PDF)
-- Allow direct publishing to printing services
-- Enable API access for third-party applications
-- Create plugins for popular design software
+2. Image Generation
+Options:
 
-## User Experience
+Use Midjourney via Discord bot (tricky, needs Discord automation)
 
-### Enhanced UI/UX
-- Add dark/light mode toggle
-- Create a more responsive design for mobile users
-- Implement drag-and-drop for easier image uploads
-- Add keyboard shortcuts for power users
-- Create a guided tour for new users
+Or use Stable Diffusion / DALL·E / Groq AI, connected via API
 
-### Accessibility Improvements
-- Enhance keyboard navigation
-- Add screen reader support
-- Implement high contrast mode
-- Include text scaling options
-- Add voice commands for hands-free operation
+Result: A final image (URL or base64) sent back to the frontend
 
-### Analytics & Insights
-- Add usage analytics dashboard for users
-- Implement feedback system to rate generated images
-- Create a community showcase of top-rated generations
-- Provide insight into generation parameters for successful images
-- Track improvement suggestions from users
+3. Image Editor
+Tools:
 
-## Community Features
+Fabric.js
 
-### Collaboration Tools
-- Enable shared workspaces for teams
-- Add commenting and feedback on shared images
-- Implement collaborative prompt editing
-- Create version control for image iterations
-- Add real-time collaboration sessions
+Toast UI Image Editor
 
-### Learning Resources
-- Create tutorials for effective prompt engineering
-- Build a knowledge base of image generation tips
-- Implement a community forum for discussion
-- Add webinars and live demonstrations
-- Create challenges and contests for skill development
+Pintura (paid)
 
-## Technical Enhancements
+Purpose:
 
-### AI Model Improvements
-- Support multiple AI models for different generation styles
-- Implement fine-tuning options for specialized outputs
-- Add style transfer capabilities
-- Create custom training options for enterprise users
-- Enable model comparison to choose the best output
+Let users modify brightness, contrast, add text, crop, etc., all inside the browser.
 
-### Security & Privacy
-- Implement end-to-end encryption for sensitive images
-- Add content moderation for generated images
-- Create privacy controls for shared content
-- Include image rights management options
-- Add watermarking and ownership verification 
+4. Post to Instagram
+Button Action:
+
+Show a confirm() popup
+
+On confirmation:
+
+Convert the edited image (canvas) to a blob or base64 string
+
+Send it to the backend via POST /api/sendToInstagram with:
+
+The final image
+
+The caption
+
+⚙️ Backend Logic (API Server)
+Receives:
+
+Image (base64 or file)
+
+Caption
+
+Processes:
+
+Sends data to an n8n Webhook URL
+
+🤖 n8n Automation Workflow
+Workflow Outline:
+
+Webhook Trigger – Receives image and caption from backend
+
+(Optional) Save Image – Store image locally or in cloud
+
+Instagram Upload Step:
+
+Step 1: Upload image to Meta Graph API
+Endpoint: https://graph.facebook.com/v18.0/{ig-user-id}/media
+
+Step 2: Publish image
+Endpoint: https://graph.facebook.com/v18.0/{ig-user-id}/media_publish
+
+Requirements:
+
+Instagram Business Account
+
+Facebook App with Instagram Graph API access
+
+Page Access Token (long-lived)
+
+IG User ID
+
+🧩 Tech Stack Suggestions
+Feature	Suggested Tools
+Frontend UI	HTML, JS, Tailwind or React
+Image Generator API	Groq / Stability / MJ
+Image Editor	Fabric.js or Toast UI
+Backend	Node.js / Firebase
+Automation Layer	n8n
+Instagram Posting	Meta Graph API
+
+📝 Example Payload (from backend to n8n Webhook)
+json
+Copy
+Edit
+{
+  "caption": "A warrior standing in a lightning storm",
+  "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg..."
+}
+✅ Final Output
+The AI-generated, user-edited image is posted to Instagram automatically with the given caption.
